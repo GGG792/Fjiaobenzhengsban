@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
-local MAIN_URL = "https://raw.githubusercontent.com/你的用户名/正式版仓库名/main/Main.lua"  -- 替换为你正式版仓库的实际直链
+local MAIN_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/zhengw.lua"
 
 -- 创建启动器界面
 local ScreenGui = Instance.new("ScreenGui")
