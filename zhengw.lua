@@ -1432,6 +1432,32 @@ local function createServerScriptsWindow()
         pcall(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/ziran.lua"))()
         end)
+        -- 清理自然灾害脚本的FPS显示（如果有的话）
+        task.delay(2, function()
+            pcall(function()
+                for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+                    if gui:IsA("ScreenGui") then
+                        for _, obj in ipairs(gui:GetDescendants()) do
+                            if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
+                                obj:Destroy()
+                            end
+                        end
+                    end
+                end
+            end)
+            -- 也检查CoreGui
+            pcall(function()
+                for _, gui in ipairs(CoreGui:GetChildren()) do
+                    if gui:IsA("ScreenGui") then
+                        for _, obj in ipairs(gui:GetDescendants()) do
+                            if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
+                                obj:Destroy()
+                            end
+                        end
+                    end
+                end
+            end)
+        end)
         ServerScriptsWindow.Visible = false
         pcall(function()
             game:GetService("StarterGui"):SetCore("SendNotification", {
@@ -1575,11 +1601,79 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     if espEnabled then task.wait(1); createESP() end
 end)
 
+-- ========== FPS显示 ==========
+local fpsLabel = nil
+local function createFPSDisplay()
+    fpsLabel = new("TextLabel", ScreenGui, {
+        Name = "FPSLabel",
+        Size = UDim2.new(0, 80, 0, 22),
+        Position = UDim2.new(1, -90, 0, 5),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+        BackgroundTransparency = 0.3,
+        Text = "FPS: 60",
+        TextColor3 = Color3.fromRGB(0, 255, 100),
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        ZIndex = 200
+    })
+    corner(fpsLabel, 6)
+
+    local fpsStroke = new("UIStroke", fpsLabel, {
+        Thickness = 1,
+        Transparency = 0.5,
+        Color = Color3.fromRGB(0, 255, 100)
+    })
+
+    local lastTime = tick()
+    local frameCount = 0
+
+    RunService.RenderStepped:Connect(function()
+        frameCount = frameCount + 1
+        local currentTime = tick()
+        if currentTime - lastTime >= 1 then
+            local fps = math.floor(frameCount / (currentTime - lastTime))
+            frameCount = 0
+            lastTime = currentTime
+            if fpsLabel and fpsLabel.Parent then
+                fpsLabel.Text = "FPS: " .. fps
+                if fps >= 55 then
+                    fpsLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+                    fpsStroke.Color = Color3.fromRGB(0, 255, 100)
+                elseif fps >= 30 then
+                    fpsLabel.TextColor3 = Color3.fromRGB(255, 220, 0)
+                    fpsStroke.Color = Color3.fromRGB(255, 220, 0)
+                else
+                    fpsLabel.TextColor3 = Color3.fromRGB(255, 70, 70)
+                    fpsStroke.Color = Color3.fromRGB(255, 70, 70)
+                end
+            end
+        end
+    end)
+end
+createFPSDisplay()
+
+-- ========== 解除帧率限制 ==========
+local fpsUnlocked = false
+local function unlockFPS()
+    fpsUnlocked = true
+    pcall(function()
+        setfpscap(999)
+    end)
+    pcall(function()
+        if settings then
+            settings().Rendering.FrameRateManager = 999
+        end
+    end)
+end
+
+-- 自动解除帧率限制
+unlockFPS()
+
 -- ========== 完成通知 ==========
 pcall(function()
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "F脚本中心",
-        Text = "v5.0 全面优化版已加载",
+        Text = "v5.1 已加载 | FPS已解锁",
         Duration = 4
     })
 end)
