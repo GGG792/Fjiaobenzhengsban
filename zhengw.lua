@@ -1334,8 +1334,8 @@ local function createServerScriptsWindow()
     if ServerScriptsWindow then return end
     ServerScriptsWindow = new("Frame", ScreenGui, {
         Name = "ServerScriptsWindow",
-        Size = UDim2.new(0, 300, 0, 200),
-        Position = UDim2.new(0.5, -150, 0.5, -100),
+        Size = UDim2.new(0, 300, 0, 380),
+        Position = UDim2.new(0.5, -150, 0.5, -190),
         BackgroundColor3 = Color3.fromRGB(30, 30, 35),
         BorderSizePixel = 0,
         Active = true,
@@ -1383,90 +1383,28 @@ local function createServerScriptsWindow()
     corner(ssScroll, 8)
 
     local ssLayout = new("UIListLayout", ssScroll, {
-        Padding = UDim.new(0, 6),
+        Padding = UDim.new(0, 5),
         ZIndex = 71
     })
 
-    -- 自然灾害脚本
-    local ziranBtn = new("TextButton", ssScroll, {
-        Size = UDim2.new(1, -10, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(55, 55, 65),
-        Text = "",
-        BorderSizePixel = 0,
-        ZIndex = 72
-    })
-    corner(ziranBtn, 8)
-
-    local ziranIcon = new("TextLabel", ziranBtn, {
-        Size = UDim2.new(0, 28, 0, 28),
-        Position = UDim2.new(0, 8, 0, 6),
-        BackgroundTransparency = 1,
-        Text = "🌪",
-        TextSize = 18,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 73
-    })
-
-    local ziranText = new("TextLabel", ziranBtn, {
-        Size = UDim2.new(1, -44, 1, 0),
-        Position = UDim2.new(0, 36, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "自然灾害",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 13,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 73
-    })
-
-    local ziranColor = new("Frame", ziranBtn, {
-        Size = UDim2.new(0, 3, 0.6, 0),
-        Position = UDim2.new(1, -6, 0.2, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 100, 50),
-        BorderSizePixel = 0,
-        ZIndex = 73
-    })
-    corner(ziranColor, 2)
-
-    ziranBtn.MouseButton1Click:Connect(function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/ziran.lua"))()
-        end)
-        -- 清理自然灾害脚本的FPS显示（如果有的话）
-        task.delay(2, function()
-            pcall(function()
-                for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
-                    if gui:IsA("ScreenGui") then
-                        for _, obj in ipairs(gui:GetDescendants()) do
-                            if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
-                                obj:Destroy()
-                            end
-                        end
-                    end
-                end
-            end)
-            -- 也检查CoreGui
-            pcall(function()
-                for _, gui in ipairs(CoreGui:GetChildren()) do
-                    if gui:IsA("ScreenGui") then
-                        for _, obj in ipairs(gui:GetDescendants()) do
-                            if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
-                                obj:Destroy()
-                            end
-                        end
-                    end
-                end
-            end)
-        end)
-        ServerScriptsWindow.Visible = false
-        pcall(function()
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "服务器脚本",
-                Text = "自然灾害脚本已加载",
-                Duration = 3
-            })
-        end)
-    end)
+    -- 脚本列表定义
+    local BASE_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/"
+    local scriptList = {
+        {name = "自然灾害", icon = "🌪", color = Color3.fromRGB(255, 100, 50), file = "ziran.lua"},
+        {name = "8个球池经典", icon = "🎱", color = Color3.fromRGB(0, 162, 255), file = "scripts/8个球池经典.lua"},
+        {name = "99夜", icon = "🌙", color = Color3.fromRGB(100, 50, 200), file = "scripts/99夜.lua"},
+        {name = "保护房子不受怪物入侵", icon = "🏠", color = Color3.fromRGB(255, 200, 0), file = "scripts/保护房子不受怪物入侵.lua"},
+        {name = "餐厅大亨3", icon = "🍽", color = Color3.fromRGB(255, 150, 50), file = "scripts/餐厅大亨3.lua"},
+        {name = "超高速跑者", icon = "🏃", color = Color3.fromRGB(0, 255, 150), file = "scripts/超高速跑者.lua"},
+        {name = "超真实CSGO", icon = "🔫", color = Color3.fromRGB(200, 50, 50), file = "scripts/超真实csgo.lua"},
+        {name = "沉默的刺客", icon = "🗡", color = Color3.fromRGB(80, 80, 80), file = "scripts/沉默的刺客.lua"},
+        {name = "刀刃球", icon = "⚔", color = Color3.fromRGB(255, 80, 80), file = "scripts/刀刃球.lua"},
+        {name = "钓鱼模拟器", icon = "🎣", color = Color3.fromRGB(0, 200, 255), file = "scripts/钓鱼模拟器.lua"},
+        {name = "犯罪", icon = "🔫", color = Color3.fromRGB(255, 50, 0), file = "scripts/犯罪.lua"},
+        {name = "防御", icon = "🛡", color = Color3.fromRGB(50, 150, 255), file = "scripts/防御.lua"},
+        {name = "花园地平线", icon = "🌸", color = Color3.fromRGB(255, 150, 200), file = "scripts/花园地平线.lua"},
+        {name = "滑石头RNG", icon = "🪨", color = Color3.fromRGB(180, 130, 80), file = "scripts/滑石头RNG.lua"},
+    }
 
     -- 按钮悬停效果
     local function addHoverEffect(btn)
@@ -1478,7 +1416,90 @@ local function createServerScriptsWindow()
             tween(btn, 0.2, {BackgroundColor3 = originalColor})
         end)
     end
-    addHoverEffect(ziranBtn)
+
+    -- 创建每个脚本按钮
+    for _, scriptInfo in ipairs(scriptList) do
+        local sBtn = new("TextButton", ssScroll, {
+            Size = UDim2.new(1, -10, 0, 38),
+            BackgroundColor3 = Color3.fromRGB(55, 55, 65),
+            Text = "",
+            BorderSizePixel = 0,
+            ZIndex = 72
+        })
+        corner(sBtn, 8)
+
+        local sIcon = new("TextLabel", sBtn, {
+            Size = UDim2.new(0, 26, 0, 26),
+            Position = UDim2.new(0, 7, 0, 6),
+            BackgroundTransparency = 1,
+            Text = scriptInfo.icon,
+            TextSize = 16,
+            Font = Enum.Font.GothamBold,
+            ZIndex = 73
+        })
+
+        local sText = new("TextLabel", sBtn, {
+            Size = UDim2.new(1, -42, 1, 0),
+            Position = UDim2.new(0, 34, 0, 0),
+            BackgroundTransparency = 1,
+            Text = scriptInfo.name,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = 12,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 73
+        })
+
+        local sColor = new("Frame", sBtn, {
+            Size = UDim2.new(0, 3, 0.6, 0),
+            Position = UDim2.new(1, -6, 0.2, 0),
+            BackgroundColor3 = scriptInfo.color,
+            BorderSizePixel = 0,
+            ZIndex = 73
+        })
+        corner(sColor, 2)
+
+        addHoverEffect(sBtn)
+
+        sBtn.MouseButton1Click:Connect(function()
+            pcall(function()
+                loadstring(game:HttpGet(BASE_URL .. scriptInfo.file))()
+            end)
+            -- 清理其他脚本的FPS显示
+            task.delay(2, function()
+                pcall(function()
+                    for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+                        if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
+                            for _, obj in ipairs(gui:GetDescendants()) do
+                                if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
+                                    obj:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end)
+                pcall(function()
+                    for _, gui in ipairs(CoreGui:GetChildren()) do
+                        if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
+                            for _, obj in ipairs(gui:GetDescendants()) do
+                                if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
+                                    obj:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end)
+            end)
+            ServerScriptsWindow.Visible = false
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "服务器脚本",
+                    Text = scriptInfo.name .. " 已加载",
+                    Duration = 3
+                })
+            end)
+        end)
+    end
 end
 
 local serverscriptsBtn = buttonRefs["serverscripts"]
