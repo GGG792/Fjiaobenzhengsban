@@ -32,88 +32,228 @@ if isMobile then scale = math.min(scale, 0.85) end
 local frameWidth = math.floor(520 * scale)
 local frameHeight = math.floor(420 * scale)
 
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
-ScreenGui.Name = "FScriptHub"; ScreenGui.ResetOnSpawn = false; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FScriptHub"
+ScreenGui.Parent = LocalPlayer.PlayerGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local MainFrame = Instance.new("Frame", ScreenGui)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
 MainFrame.Size = UDim2.new(0, frameWidth, 0, frameHeight)
 MainFrame.Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25,25,30); MainFrame.BackgroundTransparency = 0.35
-MainFrame.BorderSizePixel = 0; MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.ClipsDescendants = false
+MainFrame.BackgroundColor3 = Color3.fromRGB(25,25,30)
+MainFrame.BackgroundTransparency = 0.35
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = false
 MainFrame.Visible = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0,12)
 
-local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 3; MainStroke.Transparency = 0.2
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0,12)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Thickness = 3
+MainStroke.Transparency = 0.2
+MainStroke.Parent = MainFrame
 coroutine.wrap(function() while MainStroke and MainStroke.Parent do MainStroke.Color = Color3.fromHSV((tick()*0.5)%1,1,1); RunService.RenderStepped:Wait() end end)()
 
-local FIcon = Instance.new("TextLabel", MainFrame)
-FIcon.Size = UDim2.new(0,50,0,50); FIcon.Position = UDim2.new(0,10,0,8)
-FIcon.BackgroundColor3 = Color3.fromRGB(0,162,255); FIcon.Text = "F"; FIcon.TextColor3 = Color3.white; FIcon.Font = Enum.Font.GothamBlack; FIcon.TextSize = 28
-Instance.new("UICorner", FIcon).CornerRadius = UDim.new(0,8)
+local FIcon = Instance.new("TextLabel")
+FIcon.Name = "FIcon"
+FIcon.Parent = MainFrame
+FIcon.Size = UDim2.new(0,50,0,50)
+FIcon.Position = UDim2.new(0,10,0,8)
+FIcon.BackgroundColor3 = Color3.fromRGB(0,162,255)
+FIcon.Text = "F"
+FIcon.TextColor3 = Color3.white
+FIcon.Font = Enum.Font.GothamBlack
+FIcon.TextSize = 28
 
-local TitleLabel = Instance.new("TextLabel", MainFrame)
-TitleLabel.Size = UDim2.new(0,150,0,25); TitleLabel.Position = UDim2.new(0,65,0,10)
-TitleLabel.BackgroundTransparency=1; TitleLabel.Text="脚本中心"; TitleLabel.TextColor3=Color3.white; TitleLabel.TextSize=18; TitleLabel.Font=Enum.Font.GothamBold
-local SubTitle = Instance.new("TextLabel", MainFrame)
-SubTitle.Size = UDim2.new(0,150,0,16); SubTitle.Position = UDim2.new(0,65,0,35)
-SubTitle.BackgroundTransparency=1; SubTitle.Text="终极完整版"; SubTitle.TextColor3=Color3.fromRGB(150,150,160); SubTitle.TextSize=11; SubTitle.Font=Enum.Font.Gotham
+local FIconCorner = Instance.new("UICorner")
+FIconCorner.CornerRadius = UDim.new(0,8)
+FIconCorner.Parent = FIcon
 
-local CloseBtn = Instance.new("TextButton", MainFrame)
-CloseBtn.Size = UDim2.new(0,28,0,28); CloseBtn.Position = UDim2.new(1,-35,0,8)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255,170,0); CloseBtn.Text = "–"; CloseBtn.TextColor3 = Color3.white; CloseBtn.Font = Enum.Font.GothamBold; CloseBtn.TextSize = 18; CloseBtn.BorderSizePixel = 0
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,6)
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = MainFrame
+TitleLabel.Size = UDim2.new(0,150,0,25)
+TitleLabel.Position = UDim2.new(0,65,0,10)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "脚本中心"
+TitleLabel.TextColor3 = Color3.white
+TitleLabel.TextSize = 18
+TitleLabel.Font = Enum.Font.GothamBold
 
-local ScrollFrame = Instance.new("ScrollingFrame", MainFrame)
-ScrollFrame.Size = UDim2.new(0, 140, 1, -70); ScrollFrame.Position = UDim2.new(1, -150, 0, 60)
-ScrollFrame.BackgroundColor3 = Color3.fromRGB(35,35,42); ScrollFrame.BorderSizePixel = 0; ScrollFrame.ScrollBarThickness = 4
-ScrollFrame.CanvasSize = UDim2.new(0,0,0,2000); ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-Instance.new("UICorner", ScrollFrame).CornerRadius = UDim.new(0,6)
-local ScrollLayout = Instance.new("UIListLayout", ScrollFrame); ScrollLayout.Padding = UDim.new(0,6); ScrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Name = "SubTitle"
+SubTitle.Parent = MainFrame
+SubTitle.Size = UDim2.new(0,150,0,16)
+SubTitle.Position = UDim2.new(0,65,0,35)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "终极完整版"
+SubTitle.TextColor3 = Color3.fromRGB(150,150,160)
+SubTitle.TextSize = 11
+SubTitle.Font = Enum.Font.Gotham
 
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, -160, 1, -70); ContentFrame.Position = UDim2.new(0, 8, 0, 60)
-ContentFrame.BackgroundColor3 = Color3.fromRGB(35,35,42); ContentFrame.BackgroundTransparency = 0.3; ContentFrame.BorderSizePixel = 0
-Instance.new("UICorner", ContentFrame).CornerRadius = UDim.new(0,6)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Name = "CloseBtn"
+CloseBtn.Parent = MainFrame
+CloseBtn.Size = UDim2.new(0,28,0,28)
+CloseBtn.Position = UDim2.new(1,-35,0,8)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255,170,0)
+CloseBtn.Text = "-"
+CloseBtn.TextColor3 = Color3.white
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.BorderSizePixel = 0
 
-local PlayerInfoFrame = Instance.new("Frame", ContentFrame)
-PlayerInfoFrame.Size = UDim2.new(1,-6,0,70); PlayerInfoFrame.Position = UDim2.new(0,3,0,3)
-PlayerInfoFrame.BackgroundColor3=Color3.fromRGB(45,45,52); PlayerInfoFrame.BackgroundTransparency = 0.3; PlayerInfoFrame.BorderSizePixel=0
-Instance.new("UICorner", PlayerInfoFrame).CornerRadius = UDim.new(0,6)
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0,6)
+CloseCorner.Parent = CloseBtn
 
-local AvatarImage = Instance.new("ImageLabel", PlayerInfoFrame)
-AvatarImage.Size=UDim2.new(0,50,0,50); AvatarImage.Position=UDim2.new(0,8,0,10); AvatarImage.BackgroundTransparency=1
-coroutine.wrap(function() AvatarImage.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420) end)()
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Size = UDim2.new(0, 140, 1, -70)
+ScrollFrame.Position = UDim2.new(1, -150, 0, 60)
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(35,35,42)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.CanvasSize = UDim2.new(0,0,0,2000)
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local NameLabel = Instance.new("TextLabel", PlayerInfoFrame)
-NameLabel.Size=UDim2.new(1,-65,0,20); NameLabel.Position=UDim2.new(0,62,0,8)
-NameLabel.BackgroundTransparency=1; NameLabel.Text=LocalPlayer.DisplayName; NameLabel.TextColor3=Color3.white; NameLabel.TextSize=14; NameLabel.Font=Enum.Font.GothamBold
+local ScrollCorner = Instance.new("UICorner")
+ScrollCorner.CornerRadius = UDim.new(0,6)
+ScrollCorner.Parent = ScrollFrame
 
-local RoleLabel = Instance.new("TextLabel", PlayerInfoFrame)
-RoleLabel.Size=UDim2.new(1,-65,0,16); RoleLabel.Position=UDim2.new(0,62,0,28)
-RoleLabel.BackgroundTransparency=1; RoleLabel.Text= currentRole=="author" and "作者" or (currentRole=="vip" and "VIP" or "普通用户"); RoleLabel.TextSize=12; RoleLabel.Font=Enum.Font.Gotham
+local ScrollLayout = Instance.new("UIListLayout")
+ScrollLayout.Padding = UDim.new(0,6)
+ScrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ScrollLayout.Parent = ScrollFrame
 
-local TimeLabel = Instance.new("TextLabel", PlayerInfoFrame)
-TimeLabel.Size=UDim2.new(1,-65,0,16); TimeLabel.Position=UDim2.new(0,62,0,45)
-TimeLabel.BackgroundTransparency=1; TimeLabel.TextColor3=Color3.fromRGB(180,180,255); TimeLabel.TextSize=11; TimeLabel.Font=Enum.Font.Gotham
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1, -160, 1, -70)
+ContentFrame.Position = UDim2.new(0, 8, 0, 60)
+ContentFrame.BackgroundColor3 = Color3.fromRGB(35,35,42)
+ContentFrame.BackgroundTransparency = 0.3
+ContentFrame.BorderSizePixel = 0
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0,6)
+ContentCorner.Parent = ContentFrame
+
+local PlayerInfoFrame = Instance.new("Frame")
+PlayerInfoFrame.Name = "PlayerInfoFrame"
+PlayerInfoFrame.Parent = ContentFrame
+PlayerInfoFrame.Size = UDim2.new(1,-6,0,70)
+PlayerInfoFrame.Position = UDim2.new(0,3,0,3)
+PlayerInfoFrame.BackgroundColor3 = Color3.fromRGB(45,45,52)
+PlayerInfoFrame.BackgroundTransparency = 0.3
+PlayerInfoFrame.BorderSizePixel = 0
+
+local PlayerInfoCorner = Instance.new("UICorner")
+PlayerInfoCorner.CornerRadius = UDim.new(0,6)
+PlayerInfoCorner.Parent = PlayerInfoFrame
+
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Name = "AvatarImage"
+AvatarImage.Parent = PlayerInfoFrame
+AvatarImage.Size = UDim2.new(0,50,0,50)
+AvatarImage.Position = UDim2.new(0,8,0,10)
+AvatarImage.BackgroundTransparency = 1
+pcall(function() AvatarImage.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420) end)
+
+local NameLabel = Instance.new("TextLabel")
+NameLabel.Name = "NameLabel"
+NameLabel.Parent = PlayerInfoFrame
+NameLabel.Size = UDim2.new(1,-65,0,20)
+NameLabel.Position = UDim2.new(0,62,0,8)
+NameLabel.BackgroundTransparency = 1
+NameLabel.Text = LocalPlayer.DisplayName
+NameLabel.TextColor3 = Color3.white
+NameLabel.TextSize = 14
+NameLabel.Font = Enum.Font.GothamBold
+
+local RoleLabel = Instance.new("TextLabel")
+RoleLabel.Name = "RoleLabel"
+RoleLabel.Parent = PlayerInfoFrame
+RoleLabel.Size = UDim2.new(1,-65,0,16)
+RoleLabel.Position = UDim2.new(0,62,0,28)
+RoleLabel.BackgroundTransparency = 1
+RoleLabel.Text = currentRole=="author" and "作者" or (currentRole=="vip" and "VIP" or "普通用户")
+RoleLabel.TextSize = 12
+RoleLabel.Font = Enum.Font.Gotham
+
+local TimeLabel = Instance.new("TextLabel")
+TimeLabel.Name = "TimeLabel"
+TimeLabel.Parent = PlayerInfoFrame
+TimeLabel.Size = UDim2.new(1,-65,0,16)
+TimeLabel.Position = UDim2.new(0,62,0,45)
+TimeLabel.BackgroundTransparency = 1
+TimeLabel.TextColor3 = Color3.fromRGB(180,180,255)
+TimeLabel.TextSize = 11
+TimeLabel.Font = Enum.Font.Gotham
 coroutine.wrap(function() while TimeLabel and TimeLabel.Parent do TimeLabel.Text = os.date("%H:%M:%S"); task.wait(1) end end)()
 
-local WelcomeLabel = Instance.new("TextLabel", ContentFrame)
-WelcomeLabel.Size=UDim2.new(1,-10,0,25); WelcomeLabel.Position=UDim2.new(0,5,0,75)
-WelcomeLabel.BackgroundTransparency=1; WelcomeLabel.Text="欢迎使用 F脚本中心"; WelcomeLabel.TextColor3=Color3.white; WelcomeLabel.TextSize=14; WelcomeLabel.Font=Enum.Font.GothamBold
+local WelcomeLabel = Instance.new("TextLabel")
+WelcomeLabel.Name = "WelcomeLabel"
+WelcomeLabel.Parent = ContentFrame
+WelcomeLabel.Size = UDim2.new(1,-10,0,25)
+WelcomeLabel.Position = UDim2.new(0,5,0,75)
+WelcomeLabel.BackgroundTransparency = 1
+WelcomeLabel.Text = "欢迎使用 F脚本中心"
+WelcomeLabel.TextColor3 = Color3.white
+WelcomeLabel.TextSize = 14
+WelcomeLabel.Font = Enum.Font.GothamBold
 
-local ServerPanel = Instance.new("Frame", ContentFrame)
-ServerPanel.Size = UDim2.new(1,0,1,-75); ServerPanel.Position = UDim2.new(0,0,0,75)
-ServerPanel.BackgroundColor3=Color3.fromRGB(45,45,52); ServerPanel.BackgroundTransparency = 0.3; ServerPanel.BorderSizePixel=0; ServerPanel.Visible = false
-Instance.new("UICorner", ServerPanel).CornerRadius = UDim.new(0,6)
-local ServerTitle = Instance.new("TextLabel", ServerPanel)
-ServerTitle.Size = UDim2.new(1,-10,0,22); ServerTitle.Position = UDim2.new(0,5,0,3)
-ServerTitle.BackgroundTransparency=1; ServerTitle.Text="服务器脚本"; ServerTitle.TextColor3=Color3.white; ServerTitle.TextSize=14; ServerTitle.Font=Enum.Font.GothamBold
-local ServerScroll = Instance.new("ScrollingFrame", ServerPanel)
-ServerScroll.Size = UDim2.new(1,-6,1,-28); ServerScroll.Position = UDim2.new(0,3,0,25)
-ServerScroll.BackgroundColor3=Color3.fromRGB(25,25,30); ServerScroll.BorderSizePixel=0; ServerScroll.ScrollBarThickness=3; ServerScroll.CanvasSize=UDim2.new(0,0,0,0); ServerScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
-Instance.new("UICorner", ServerScroll).CornerRadius = UDim.new(0,3)
-local ServerListLayout = Instance.new("UIListLayout", ServerScroll); ServerListLayout.Padding = UDim.new(0,3)
+local ServerPanel = Instance.new("Frame")
+ServerPanel.Name = "ServerPanel"
+ServerPanel.Parent = ContentFrame
+ServerPanel.Size = UDim2.new(1,0,1,-75)
+ServerPanel.Position = UDim2.new(0,0,0,75)
+ServerPanel.BackgroundColor3 = Color3.fromRGB(45,45,52)
+ServerPanel.BackgroundTransparency = 0.3
+ServerPanel.BorderSizePixel = 0
+ServerPanel.Visible = false
+
+local ServerPanelCorner = Instance.new("UICorner")
+ServerPanelCorner.CornerRadius = UDim.new(0,6)
+ServerPanelCorner.Parent = ServerPanel
+
+local ServerTitle = Instance.new("TextLabel")
+ServerTitle.Name = "ServerTitle"
+ServerTitle.Parent = ServerPanel
+ServerTitle.Size = UDim2.new(1,-10,0,22)
+ServerTitle.Position = UDim2.new(0,5,0,3)
+ServerTitle.BackgroundTransparency = 1
+ServerTitle.Text = "服务器脚本"
+ServerTitle.TextColor3 = Color3.white
+ServerTitle.TextSize = 14
+ServerTitle.Font = Enum.Font.GothamBold
+
+local ServerScroll = Instance.new("ScrollingFrame")
+ServerScroll.Name = "ServerScroll"
+ServerScroll.Parent = ServerPanel
+ServerScroll.Size = UDim2.new(1,-6,1,-28)
+ServerScroll.Position = UDim2.new(0,3,0,25)
+ServerScroll.BackgroundColor3 = Color3.fromRGB(25,25,30)
+ServerScroll.BorderSizePixel = 0
+ServerScroll.ScrollBarThickness = 3
+ServerScroll.CanvasSize = UDim2.new(0,0,0,0)
+ServerScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local ServerScrollCorner = Instance.new("UICorner")
+ServerScrollCorner.CornerRadius = UDim.new(0,3)
+ServerScrollCorner.Parent = ServerScroll
+
+local ServerListLayout = Instance.new("UIListLayout")
+ServerListLayout.Padding = UDim.new(0,3)
+ServerListLayout.Parent = ServerScroll
 
 local buttonRefs = {}
 local btnDefs = {
@@ -156,7 +296,11 @@ for i, info in ipairs(btnDefs) do
     btn.BorderSizePixel = 0
     btn.LayoutOrder = i
     btn.AutoButtonColor = false
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0,6)
+    btnCorner.Parent = btn
+
     buttonRefs[info.id] = btn
 end
 

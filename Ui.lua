@@ -107,17 +107,22 @@ StartBtn.MouseButton1Click:Connect(function()
     StartBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
     local success, err = pcall(function()
-        loadstring(game:HttpGet(MAIN_URL))()
+        local code = game:HttpGet(MAIN_URL)
+        if code and #code > 100 then
+            loadstring(code)()
+        else
+            error("获取脚本失败，返回内容过短")
+        end
     end)
-    
+
     if not success then
         StartBtn.Text = "启动脚本"
         StartBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
         pcall(function()
             game:GetService("StarterGui"):SetCore("SendNotification", {
                 Title = "启动失败",
-                Text = "请检查网络连接",
-                Duration = 3
+                Text = tostring(err):sub(1,50) or "请检查网络连接",
+                Duration = 5
             })
         end)
     else
