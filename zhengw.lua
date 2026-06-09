@@ -300,14 +300,16 @@ for i, info in ipairs(btnDefs) do
 
     -- 文字
     local textLabel = new("TextLabel", btn, {
-        Size = UDim2.new(1, -40, 1, 0),
-        Position = UDim2.new(0, 34, 0, 0),
+        Name = "BtnText",
+        Size = UDim2.new(1, -44, 1, 0),
+        Position = UDim2.new(0, 32, 0, 0),
         BackgroundTransparency = 1,
         Text = info.name,
         TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 13,
+        TextSize = 11,
         Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextScaled = false
     })
 
     -- 颜色条
@@ -353,7 +355,7 @@ end
 
 local datamodBtn = buttonRefs["datamod"]
 if datamodBtn and not isVIP then
-    local txt = datamodBtn:FindFirstChildOfClass("TextLabel")
+    local txt = datamodBtn:FindFirstChild("BtnText")
     if txt then txt.Text = "数据修改器 (VIP)" end
     datamodBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
 end
@@ -608,7 +610,7 @@ local function stopOrbit()
     orbitTargetPlayer = nil
     local ob = buttonRefs["orbit"]
     if ob then
-        local txt = ob:FindFirstChildOfClass("TextLabel")
+        local txt = ob:FindFirstChild("BtnText")
         if txt then txt.Text = "环绕旋转" end
         ob.BackgroundColor3 = Color3.fromRGB(50,50,60)
     end
@@ -706,7 +708,7 @@ local function refreshPlayerList()
                 end)
                 local ob = buttonRefs["orbit"]
                 if ob then
-                    local txt = ob:FindFirstChildOfClass("TextLabel")
+                    local txt = ob:FindFirstChild("BtnText")
                     if txt then txt.Text = "环绕中..." end
                     ob.BackgroundColor3 = Color3.fromRGB(120,40,200)
                 end
@@ -895,7 +897,7 @@ local function enableCarBoost()
     end)
     local btn = buttonRefs["carboost"]
     if btn then
-        local txt = btn:FindFirstChildOfClass("TextLabel")
+        local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = "车辆加速 (开)" end
         btn.BackgroundColor3 = Color3.fromRGB(200, 120, 0)
     end
@@ -905,7 +907,7 @@ local function disableCarBoost()
     if carboostConn then carboostConn:Disconnect() end
     local btn = buttonRefs["carboost"]
     if btn then
-        local txt = btn:FindFirstChildOfClass("TextLabel")
+        local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = "车辆加速" end
         btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
     end
@@ -943,7 +945,7 @@ local function enableInstantAction()
     end)
     local btn = buttonRefs["instantaction"]
     if btn then
-        local txt = btn:FindFirstChildOfClass("TextLabel")
+        local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = "快速互动 (开)" end
         btn.BackgroundColor3 = Color3.fromRGB(0, 180, 160)
     end
@@ -952,7 +954,7 @@ local function disableInstantAction()
     instantActionEnabled = false
     local btn = buttonRefs["instantaction"]
     if btn then
-        local txt = btn:FindFirstChildOfClass("TextLabel")
+        local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = "快速互动" end
         btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
     end
@@ -1113,7 +1115,7 @@ end
 local function setBtnText(id, text)
     local btn = buttonRefs[id]
     if btn then
-        local txt = btn:FindFirstChildOfClass("TextLabel")
+        local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = text end
     end
 end
@@ -1326,10 +1328,138 @@ if admintoolBtn then
     end)
 end
 
+-- 服务器脚本弹窗
+local ServerScriptsWindow = nil
+local function createServerScriptsWindow()
+    if ServerScriptsWindow then return end
+    ServerScriptsWindow = new("Frame", ScreenGui, {
+        Name = "ServerScriptsWindow",
+        Size = UDim2.new(0, 300, 0, 200),
+        Position = UDim2.new(0.5, -150, 0.5, -100),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 35),
+        BorderSizePixel = 0,
+        Active = true,
+        Draggable = true,
+        Visible = false,
+        ZIndex = 70
+    })
+    corner(ServerScriptsWindow, 12)
+
+    local ssTitle = new("TextLabel", ServerScriptsWindow, {
+        Size = UDim2.new(1, 0, 0, 35),
+        Position = UDim2.new(0, 0, 0, 5),
+        BackgroundTransparency = 1,
+        Text = "服务器脚本",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 18,
+        Font = Enum.Font.GothamBold,
+        ZIndex = 71
+    })
+
+    local ssClose = new("TextButton", ServerScriptsWindow, {
+        Size = UDim2.new(0, 28, 0, 28),
+        Position = UDim2.new(1, -33, 0, 6),
+        BackgroundColor3 = Color3.fromRGB(255, 70, 70),
+        Text = "X",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        BorderSizePixel = 0,
+        ZIndex = 71
+    })
+    corner(ssClose, 6)
+    ssClose.MouseButton1Click:Connect(function() ServerScriptsWindow.Visible = false end)
+
+    local ssScroll = new("ScrollingFrame", ServerScriptsWindow, {
+        Size = UDim2.new(1, -12, 1, -50),
+        Position = UDim2.new(0, 6, 0, 40),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 48),
+        BorderSizePixel = 0,
+        ScrollBarThickness = 4,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ZIndex = 71
+    })
+    corner(ssScroll, 8)
+
+    local ssLayout = new("UIListLayout", ssScroll, {
+        Padding = UDim.new(0, 6),
+        ZIndex = 71
+    })
+
+    -- 自然灾害脚本
+    local ziranBtn = new("TextButton", ssScroll, {
+        Size = UDim2.new(1, -10, 0, 40),
+        BackgroundColor3 = Color3.fromRGB(55, 55, 65),
+        Text = "",
+        BorderSizePixel = 0,
+        ZIndex = 72
+    })
+    corner(ziranBtn, 8)
+
+    local ziranIcon = new("TextLabel", ziranBtn, {
+        Size = UDim2.new(0, 28, 0, 28),
+        Position = UDim2.new(0, 8, 0, 6),
+        BackgroundTransparency = 1,
+        Text = "🌪",
+        TextSize = 18,
+        Font = Enum.Font.GothamBold,
+        ZIndex = 73
+    })
+
+    local ziranText = new("TextLabel", ziranBtn, {
+        Size = UDim2.new(1, -44, 1, 0),
+        Position = UDim2.new(0, 36, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "自然灾害",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 13,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 73
+    })
+
+    local ziranColor = new("Frame", ziranBtn, {
+        Size = UDim2.new(0, 3, 0.6, 0),
+        Position = UDim2.new(1, -6, 0.2, 0),
+        BackgroundColor3 = Color3.fromRGB(255, 100, 50),
+        BorderSizePixel = 0,
+        ZIndex = 73
+    })
+    corner(ziranColor, 2)
+
+    ziranBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/ziran.lua"))()
+        end)
+        ServerScriptsWindow.Visible = false
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "服务器脚本",
+                Text = "自然灾害脚本已加载",
+                Duration = 3
+            })
+        end)
+    end)
+
+    -- 按钮悬停效果
+    local function addHoverEffect(btn)
+        local originalColor = btn.BackgroundColor3
+        btn.MouseEnter:Connect(function()
+            tween(btn, 0.2, {BackgroundColor3 = Color3.fromRGB(70, 70, 85)})
+        end)
+        btn.MouseLeave:Connect(function()
+            tween(btn, 0.2, {BackgroundColor3 = originalColor})
+        end)
+    end
+    addHoverEffect(ziranBtn)
+end
+
 local serverscriptsBtn = buttonRefs["serverscripts"]
 if serverscriptsBtn then
     serverscriptsBtn.MouseButton1Click:Connect(function()
-        -- 服务器脚本功能
+        if not ServerScriptsWindow then createServerScriptsWindow() end
+        ServerScriptsWindow.Visible = not ServerScriptsWindow.Visible
     end)
 end
 
