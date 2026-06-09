@@ -68,7 +68,7 @@ FIcon.Size = UDim2.new(0,50,0,50)
 FIcon.Position = UDim2.new(0,10,0,8)
 FIcon.BackgroundColor3 = Color3.fromRGB(0,162,255)
 FIcon.Text = "F"
-FIcon.TextColor3 = Color3.white
+FIcon.TextColor3 = Color3.fromRGB(255,255,255)
 FIcon.Font = Enum.Font.GothamBlack
 FIcon.TextSize = 28
 
@@ -83,7 +83,7 @@ TitleLabel.Size = UDim2.new(0,150,0,25)
 TitleLabel.Position = UDim2.new(0,65,0,10)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Text = "脚本中心"
-TitleLabel.TextColor3 = Color3.white
+TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.TextSize = 18
 TitleLabel.Font = Enum.Font.GothamBold
 
@@ -105,7 +105,7 @@ CloseBtn.Size = UDim2.new(0,28,0,28)
 CloseBtn.Position = UDim2.new(1,-35,0,8)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(255,170,0)
 CloseBtn.Text = "-"
-CloseBtn.TextColor3 = Color3.white
+CloseBtn.TextColor3 = Color3.fromRGB(255,255,255)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 18
 CloseBtn.BorderSizePixel = 0
@@ -175,7 +175,7 @@ NameLabel.Size = UDim2.new(1,-65,0,20)
 NameLabel.Position = UDim2.new(0,62,0,8)
 NameLabel.BackgroundTransparency = 1
 NameLabel.Text = LocalPlayer.DisplayName
-NameLabel.TextColor3 = Color3.white
+NameLabel.TextColor3 = Color3.fromRGB(255,255,255)
 NameLabel.TextSize = 14
 NameLabel.Font = Enum.Font.GothamBold
 
@@ -207,7 +207,7 @@ WelcomeLabel.Size = UDim2.new(1,-10,0,25)
 WelcomeLabel.Position = UDim2.new(0,5,0,75)
 WelcomeLabel.BackgroundTransparency = 1
 WelcomeLabel.Text = "欢迎使用 F脚本中心"
-WelcomeLabel.TextColor3 = Color3.white
+WelcomeLabel.TextColor3 = Color3.fromRGB(255,255,255)
 WelcomeLabel.TextSize = 14
 WelcomeLabel.Font = Enum.Font.GothamBold
 
@@ -232,7 +232,7 @@ ServerTitle.Size = UDim2.new(1,-10,0,22)
 ServerTitle.Position = UDim2.new(0,5,0,3)
 ServerTitle.BackgroundTransparency = 1
 ServerTitle.Text = "服务器脚本"
-ServerTitle.TextColor3 = Color3.white
+ServerTitle.TextColor3 = Color3.fromRGB(255,255,255)
 ServerTitle.TextSize = 14
 ServerTitle.Font = Enum.Font.GothamBold
 
@@ -309,8 +309,8 @@ local PlayerSelectFrame = Instance.new("Frame", MainFrame)
 PlayerSelectFrame.Name="PlayerSelectFrame"; PlayerSelectFrame.Size=UDim2.new(0.8,0,0.7,0); PlayerSelectFrame.Position=UDim2.new(0.1,0,0.15,0)
 PlayerSelectFrame.BackgroundColor3=Color3.fromRGB(30,30,35); PlayerSelectFrame.BorderSizePixel=0; PlayerSelectFrame.Visible=false
 Instance.new("UICorner", PlayerSelectFrame).CornerRadius=UDim.new(0,8)
-local SelectTitle = Instance.new("TextLabel", PlayerSelectFrame); SelectTitle.Size=UDim2.new(1,0,0,30); SelectTitle.Position=UDim2.new(0,0,0,5); SelectTitle.BackgroundTransparency=1; SelectTitle.Text="选择玩家"; SelectTitle.TextColor3=Color3.white; SelectTitle.TextSize=16; SelectTitle.Font=Enum.Font.GothamBold
-local SelectCloseBtn = Instance.new("TextButton", PlayerSelectFrame); SelectCloseBtn.Size=UDim2.new(0,25,0,25); SelectCloseBtn.Position=UDim2.new(1,-30,0,5); SelectCloseBtn.BackgroundColor3=Color3.fromRGB(255,70,70); SelectCloseBtn.Text="X"; SelectCloseBtn.TextColor3=Color3.white; SelectCloseBtn.TextSize=14; SelectCloseBtn.Font=Enum.Font.GothamBold; SelectCloseBtn.BorderSizePixel=0
+local SelectTitle = Instance.new("TextLabel", PlayerSelectFrame); SelectTitle.Size=UDim2.new(1,0,0,30); SelectTitle.Position=UDim2.new(0,0,0,5); SelectTitle.BackgroundTransparency=1; SelectTitle.Text="选择玩家"; SelectTitle.TextColor3=Color3.fromRGB(255,255,255); SelectTitle.TextSize=16; SelectTitle.Font=Enum.Font.GothamBold
+local SelectCloseBtn = Instance.new("TextButton", PlayerSelectFrame); SelectCloseBtn.Size=UDim2.new(0,25,0,25); SelectCloseBtn.Position=UDim2.new(1,-30,0,5); SelectCloseBtn.BackgroundColor3=Color3.fromRGB(255,70,70); SelectCloseBtn.Text="X"; SelectCloseBtn.TextColor3=Color3.fromRGB(255,255,255); SelectCloseBtn.TextSize=14; SelectCloseBtn.Font=Enum.Font.GothamBold; SelectCloseBtn.BorderSizePixel=0
 Instance.new("UICorner", SelectCloseBtn).CornerRadius=UDim.new(0,6); SelectCloseBtn.MouseButton1Click:Connect(function() PlayerSelectFrame.Visible = false end)
 local PlayerScroll = Instance.new("ScrollingFrame", PlayerSelectFrame); PlayerScroll.Size=UDim2.new(1,-10,1,-45); PlayerScroll.Position=UDim2.new(0,5,0,35)
 PlayerScroll.BackgroundColor3=Color3.fromRGB(40,40,48); PlayerScroll.BorderSizePixel=0; PlayerScroll.ScrollBarThickness=4; PlayerScroll.CanvasSize=UDim2.new(0,0,0,0); PlayerScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
@@ -336,7 +336,7 @@ local function createSpeedInput(name, def, cb)
     local input = Instance.new("TextBox", row); input.Size = UDim2.new(1,-90,1,-4); input.Position = UDim2.new(0,55,0,2)
     input.Text=tostring(def); input.TextColor3=Color3.fromRGB(0,0,0); input.BackgroundColor3=Color3.fromRGB(255,255,255); input.Font=Enum.Font.Gotham; input.TextSize=11; input.BorderSizePixel=0
     local applyBtn = Instance.new("TextButton", row); applyBtn.Size = UDim2.new(0,30,1,-4); applyBtn.Position = UDim2.new(1,-30,0,2)
-    applyBtn.BackgroundColor3=Color3.fromRGB(0,162,255); applyBtn.Text="OK"; applyBtn.TextColor3=Color3.white; applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=11; applyBtn.BorderSizePixel=0
+    applyBtn.BackgroundColor3=Color3.fromRGB(0,162,255); applyBtn.Text="OK"; applyBtn.TextColor3=Color3.fromRGB(255,255,255); applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=11; applyBtn.BorderSizePixel=0
     Instance.new("UICorner", applyBtn).CornerRadius = UDim.new(0,3)
     applyBtn.MouseButton1Click:Connect(function() local n = tonumber(input.Text); if n then cb(n) end end)
 end
@@ -379,7 +379,7 @@ local function stopOrbit() orbitEnabled = false; if orbitConnection then orbitCo
 local function refreshPlayerList()
     for _, child in ipairs(PlayerScroll:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
     for _, player in ipairs(Players:GetPlayers()) do if player ~= LocalPlayer then
-        local pBtn = Instance.new("TextButton"); pBtn.Size = UDim2.new(1,-8,0,32); pBtn.BackgroundColor3=Color3.fromRGB(55,55,65); pBtn.Text = player.Name; pBtn.TextColor3 = Color3.white; pBtn.TextSize = 12; pBtn.Font = Enum.Font.GothamBold; pBtn.BorderSizePixel = 0
+        local pBtn = Instance.new("TextButton"); pBtn.Size = UDim2.new(1,-8,0,32); pBtn.BackgroundColor3=Color3.fromRGB(55,55,65); pBtn.Text = player.Name; pBtn.TextColor3 = Color3.fromRGB(255,255,255); pBtn.TextSize = 12; pBtn.Font = Enum.Font.GothamBold; pBtn.BorderSizePixel = 0
         Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0,4)
         pBtn.MouseButton1Click:Connect(function()
             PlayerSelectFrame.Visible = false; orbitTargetPlayer = player; orbitEnabled = true; orbitAngle = 0
@@ -447,7 +447,7 @@ local function clearESP() for _,obj in ipairs(espObjects) do if obj.Parent then 
 local function createESP()
     clearESP()
     for _,player in ipairs(Players:GetPlayers()) do if player ~= LocalPlayer and player.Character then
-        local hl = Instance.new("Highlight",player.Character); hl.FillColor=Color3.fromRGB(255,0,0); hl.FillTransparency=0.7; hl.OutlineColor=Color3.white; hl.OutlineTransparency=0
+        local hl = Instance.new("Highlight",player.Character); hl.FillColor=Color3.fromRGB(255,0,0); hl.FillTransparency=0.7; hl.OutlineColor=Color3.fromRGB(255,255,255); hl.OutlineTransparency=0
         table.insert(espObjects,hl)
     end end
 end
@@ -476,9 +476,9 @@ local function createDataWindow()
     dataWindow.BackgroundColor3=Color3.fromRGB(35,35,42); dataWindow.BorderSizePixel=0; dataWindow.Active=true; dataWindow.Draggable=true
     Instance.new("UICorner",dataWindow).CornerRadius=UDim.new(0,8)
     local dwTitle = Instance.new("TextLabel",dataWindow); dwTitle.Size=UDim2.new(1,-30,0,25); dwTitle.Position=UDim2.new(0,15,0,5)
-    dwTitle.BackgroundTransparency=1; dwTitle.Text="数据修改器"; dwTitle.TextColor3=Color3.white; dwTitle.TextSize=16; dwTitle.Font=Enum.Font.GothamBold; dwTitle.TextXAlignment=Enum.TextXAlignment.Center
+    dwTitle.BackgroundTransparency=1; dwTitle.Text="数据修改器"; dwTitle.TextColor3=Color3.fromRGB(255,255,255); dwTitle.TextSize=16; dwTitle.Font=Enum.Font.GothamBold; dwTitle.TextXAlignment=Enum.TextXAlignment.Center
     local dwClose = Instance.new("TextButton",dataWindow); dwClose.Size=UDim2.new(0,22,0,22); dwClose.Position=UDim2.new(1,-26,0,5)
-    dwClose.BackgroundColor3=Color3.fromRGB(255,70,70); dwClose.Text="X"; dwClose.TextColor3=Color3.white; dwClose.TextSize=12; dwClose.Font=Enum.Font.GothamBold; dwClose.BorderSizePixel=0
+    dwClose.BackgroundColor3=Color3.fromRGB(255,70,70); dwClose.Text="X"; dwClose.TextColor3=Color3.fromRGB(255,255,255); dwClose.TextSize=12; dwClose.Font=Enum.Font.GothamBold; dwClose.BorderSizePixel=0
     Instance.new("UICorner",dwClose).CornerRadius=UDim.new(0,5); dwClose.MouseButton1Click:Connect(function() dataWindow.Visible=false end)
     local dataScroll = Instance.new("ScrollingFrame",dataWindow); dataScroll.Size=UDim2.new(1,-8,1,-35); dataScroll.Position=UDim2.new(0,4,0,30)
     dataScroll.BackgroundColor3=Color3.fromRGB(45,45,52); dataScroll.BorderSizePixel=0; dataScroll.ScrollBarThickness=3; dataScroll.CanvasSize=UDim2.new(0,0,0,400); dataScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
@@ -490,7 +490,7 @@ local function createDataWindow()
         local textBox = Instance.new("TextBox",row); textBox.Size=UDim2.new(1,-110,1,-4); textBox.Position=UDim2.new(0,75,0,2)
         textBox.Text=tostring(currentValue); textBox.TextColor3=Color3.fromRGB(0,0,0); textBox.BackgroundColor3=Color3.fromRGB(255,255,255); textBox.Font=Enum.Font.Gotham; textBox.TextSize=12; textBox.BorderSizePixel=0
         local applyBtn = Instance.new("TextButton",row); applyBtn.Size=UDim2.new(0,30,1,-4); applyBtn.Position=UDim2.new(1,-30,0,2)
-        applyBtn.BackgroundColor3=Color3.fromRGB(0,162,255); applyBtn.Text="OK"; applyBtn.TextColor3=Color3.white; applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=11; applyBtn.BorderSizePixel=0
+        applyBtn.BackgroundColor3=Color3.fromRGB(0,162,255); applyBtn.Text="OK"; applyBtn.TextColor3=Color3.fromRGB(255,255,255); applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=11; applyBtn.BorderSizePixel=0
         Instance.new("UICorner",applyBtn).CornerRadius=UDim.new(0,3)
         applyBtn.MouseButton1Click:Connect(function() applyFunc(textBox.Text) end)
         return textBox
@@ -509,7 +509,7 @@ local function createDataWindow()
     textBoxes.health = addDataRow(dataScroll,"生命值",100,function(val) local num=tonumber(val) if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.Health=math.max(num,0.1) end end)
     textBoxes.maxhealth = addDataRow(dataScroll,"最大生命",100,function(val) local num=tonumber(val) if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.MaxHealth=num end end)
     textBoxes.gravity = addDataRow(dataScroll,"重力",196.2,function(val) local num=tonumber(val) if num then workspace.Gravity=num end end)
-    local refreshBtn = Instance.new("TextButton",dataScroll); refreshBtn.Size=UDim2.new(1,-8,0,25); refreshBtn.Text="刷新数据"; refreshBtn.TextColor3=Color3.white; refreshBtn.BackgroundColor3=Color3.fromRGB(100,100,100); refreshBtn.Font=Enum.Font.GothamBold; refreshBtn.TextSize=12; refreshBtn.BorderSizePixel=0
+    local refreshBtn = Instance.new("TextButton",dataScroll); refreshBtn.Size=UDim2.new(1,-8,0,25); refreshBtn.Text="刷新数据"; refreshBtn.TextColor3=Color3.fromRGB(255,255,255); refreshBtn.BackgroundColor3=Color3.fromRGB(100,100,100); refreshBtn.Font=Enum.Font.GothamBold; refreshBtn.TextSize=12; refreshBtn.BorderSizePixel=0
     refreshBtn.MouseButton1Click:Connect(refreshData)
     dataWindow.Visible = false
 end
@@ -588,7 +588,7 @@ if switchroleBtn then switchroleBtn.MouseButton1Click:Connect(function()
     local selectFrame = Instance.new("Frame",ScreenGui); selectFrame.Size=UDim2.new(0,160,0,100); selectFrame.Position=UDim2.new(0.5,-80,0.5,-50)
     selectFrame.BackgroundColor3=Color3.fromRGB(35,35,42); selectFrame.BorderSizePixel=0; selectFrame.Active=true; selectFrame.Draggable=true
     Instance.new("UICorner",selectFrame).CornerRadius=UDim.new(0,6)
-    local lbl = Instance.new("TextLabel",selectFrame); lbl.Size=UDim2.new(1,0,0,20); lbl.Position=UDim2.new(0,0,0,3); lbl.BackgroundTransparency=1; lbl.Text="选择身份"; lbl.TextColor3=Color3.white; lbl.TextSize=14; lbl.Font=Enum.Font.GothamBold
+    local lbl = Instance.new("TextLabel",selectFrame); lbl.Size=UDim2.new(1,0,0,20); lbl.Position=UDim2.new(0,0,0,3); lbl.BackgroundTransparency=1; lbl.Text="选择身份"; lbl.TextColor3=Color3.fromRGB(255,255,255); lbl.TextSize=14; lbl.Font=Enum.Font.GothamBold
     local options = {
         {name="作者", role="author", col=Color3.fromRGB(255,215,0)},
         {name="VIP", role="vip", col=Color3.fromRGB(255,215,0)},
@@ -596,10 +596,10 @@ if switchroleBtn then switchroleBtn.MouseButton1Click:Connect(function()
     }
     for i,opt in ipairs(options) do
         local optBtn = Instance.new("TextButton",selectFrame); optBtn.Size=UDim2.new(1,-16,0,22); optBtn.Position=UDim2.new(0,8,0,28+(i-1)*24)
-        optBtn.BackgroundColor3=opt.col; optBtn.Text=opt.name; optBtn.TextColor3=Color3.white; optBtn.TextSize=12; optBtn.Font=Enum.Font.GothamBold; optBtn.BorderSizePixel=0
+        optBtn.BackgroundColor3=opt.col; optBtn.Text=opt.name; optBtn.TextColor3=Color3.fromRGB(255,255,255); optBtn.TextSize=12; optBtn.Font=Enum.Font.GothamBold; optBtn.BorderSizePixel=0
         Instance.new("UICorner",optBtn).CornerRadius=UDim.new(0,3)
         optBtn.MouseButton1Click:Connect(function() currentRole = opt.role; isAuthor = currentRole=="author"; isVIP = currentRole=="author" or currentRole=="vip"
-            RoleLabel.Text = opt.name; if datamodBtn then if isVIP then datamodBtn.Text="数据修改器"; datamodBtn.BackgroundColor3=Color3.fromRGB(45,45,55); datamodBtn.TextColor3=Color3.white else datamodBtn.Text="数据修改器 (VIP)"; datamodBtn.BackgroundColor3=Color3.fromRGB(80,80,80); datamodBtn.TextColor3=Color3.fromRGB(180,180,180) end end
+            RoleLabel.Text = opt.name; if datamodBtn then if isVIP then datamodBtn.Text="数据修改器"; datamodBtn.BackgroundColor3=Color3.fromRGB(45,45,55); datamodBtn.TextColor3=Color3.fromRGB(255,255,255) else datamodBtn.Text="数据修改器 (VIP)"; datamodBtn.BackgroundColor3=Color3.fromRGB(80,80,80); datamodBtn.TextColor3=Color3.fromRGB(180,180,180) end end
             selectFrame:Destroy()
             game:GetService("StarterGui"):SetCore("SendNotification",{Title="身份切换",Text="已切换为 "..opt.name,Duration=3})
         end)
@@ -615,7 +615,7 @@ local function createMiniIcon()
     if miniIcon then return end
     miniIcon = Instance.new("TextButton", ScreenGui)
     miniIcon.Size = UDim2.new(0,40,0,40); miniIcon.Position = UDim2.new(0,8,0.5,-20)
-    miniIcon.BackgroundColor3 = Color3.fromRGB(255,100,0); miniIcon.Text = "F"; miniIcon.TextColor3 = Color3.white; miniIcon.Font = Enum.Font.GothamBlack; miniIcon.TextSize = 20
+    miniIcon.BackgroundColor3 = Color3.fromRGB(255,100,0); miniIcon.Text = "F"; miniIcon.TextColor3 = Color3.fromRGB(255,255,255); miniIcon.Font = Enum.Font.GothamBlack; miniIcon.TextSize = 20
     miniIcon.BorderSizePixel = 0; miniIcon.ZIndex = 100; miniIcon.Active = true; miniIcon.Draggable = true
     Instance.new("UICorner", miniIcon).CornerRadius = UDim.new(0,8)
     miniIcon.Visible = false
@@ -644,7 +644,7 @@ CloseBtn.MouseButton1Click:Connect(minimizeUI)
 -- F按钮
 local openBtn = Instance.new("TextButton", ScreenGui)
 openBtn.Size = UDim2.new(0,40,0,40); openBtn.Position = UDim2.new(0,8,0.5,-20)
-openBtn.BackgroundColor3 = Color3.fromRGB(0,162,255); openBtn.Text = "F"; openBtn.TextColor3 = Color3.white; openBtn.Font = Enum.Font.GothamBlack; openBtn.TextSize = 20; openBtn.BorderSizePixel = 0
+openBtn.BackgroundColor3 = Color3.fromRGB(0,162,255); openBtn.Text = "F"; openBtn.TextColor3 = Color3.fromRGB(255,255,255); openBtn.Font = Enum.Font.GothamBlack; openBtn.TextSize = 20; openBtn.BorderSizePixel = 0
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0,8)
 openBtn.MouseButton1Click:Connect(function()
     if miniIcon and miniIcon.Visible then miniIcon.MouseButton1Click:Fire() return end
