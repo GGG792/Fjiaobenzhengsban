@@ -471,6 +471,9 @@ local function collapseUI()
     if animating or not MainFrame.Visible then return end
     animating = true
 
+    -- 关闭前禁用所有功能
+    disableAllFeatures()
+
     local targetPos = openBtn.Position
     local centerPos = UDim2.new(0.5, -25, 0.5, -25)
 
@@ -1142,6 +1145,187 @@ local function disableInstantAction()
         local txt = btn:FindFirstChild("BtnText")
         if txt then txt.Text = "快速互动" end
         btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    end
+end
+
+-- ========== 关闭时禁用所有功能 ==========
+local function disableAllFeatures()
+    -- 飞行
+    if flyEnabled then
+        disableFly()
+        local btn = buttonRefs["fly"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "启用飞行" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 旋转
+    if spinEnabled then
+        spinEnabled = false
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then hum.AutoRotate = true end
+        if hrp then
+            local bav = hrp:FindFirstChild("SpinVelocity")
+            if bav then bav:Destroy() end
+        end
+        local btn = buttonRefs["spin"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "旋转脚本" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 环绕
+    if orbitEnabled then
+        stopOrbit()
+    end
+
+    -- 无头
+    if headlessEnabled then
+        headlessEnabled = false
+        local char = LocalPlayer.Character
+        if char then
+            local head = char:FindFirstChild("Head")
+            if head then
+                head.Transparency = 0
+                for _, v in ipairs(head:GetChildren()) do
+                    if v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 0 end
+                end
+            end
+            local neck = char:FindFirstChild("Neck", true)
+            if neck and neck:IsA("Motor6D") then
+                neck.Transform = CFrame.new(0, 0, 0)
+            end
+        end
+        local btn = buttonRefs["headless"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "无头效果" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 燃烧
+    if fireEnabled then
+        fireEnabled = false
+        if fireObj then fireObj:Destroy(); fireObj = nil end
+        local char = LocalPlayer.Character
+        if char then
+            for _, p in ipairs(char:GetDescendants()) do
+                if p.Name == "ScriptFire" and p:IsA("Fire") then p:Destroy() end
+            end
+        end
+        local btn = buttonRefs["fire"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "燃烧效果" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 烟雾
+    if smokeEnabled then
+        smokeEnabled = false
+        local char = LocalPlayer.Character
+        if char then
+            for _, p in ipairs(char:GetDescendants()) do
+                if p.Name == "ScriptSmoke" and p:IsA("Smoke") then p:Destroy() end
+            end
+        end
+        local btn = buttonRefs["smoke"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "烟雾效果" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 加速
+    if speedEnabled then
+        speedEnabled = false
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then hum.WalkSpeed = 16 end
+        local btn = buttonRefs["speed"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "加速脚本" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 跳跃
+    if jumpEnabled then
+        jumpEnabled = false
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then
+            hum.JumpPower = 50
+            hum.UseJumpPower = false
+        end
+        local btn = buttonRefs["jump"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "跳跃增强" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 穿墙
+    if noclipEnabled then
+        noclipEnabled = false
+        stopNoclip()
+        local btn = buttonRefs["noclip"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "穿墙脚本" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- ESP
+    if espEnabled then
+        espEnabled = false
+        clearESP()
+        local btn = buttonRefs["esp"]
+        if btn then
+            local txt = btn:FindFirstChild("BtnText")
+            if txt then txt.Text = "ESP透视" end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        end
+    end
+
+    -- 车辆加速
+    if carboostEnabled then
+        disableCarBoost()
+    end
+
+    -- 快速互动
+    if instantActionEnabled then
+        disableInstantAction()
+    end
+
+    -- 恢复相机FOV
+    Camera.FieldOfView = 70
+
+    -- 恢复重力
+    workspace.Gravity = 196.2
+
+    -- 关闭数据修改器窗口
+    if dataWindow then
+        dataWindow.Visible = false
+    end
+
+    -- 关闭服务器脚本窗口
+    if ServerScriptsWindow then
+        ServerScriptsWindow.Visible = false
+    end
+
+    -- 关闭玩家选择窗口
+    if PlayerSelectFrame then
+        PlayerSelectFrame.Visible = false
     end
 end
 
