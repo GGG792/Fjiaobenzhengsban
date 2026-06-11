@@ -471,8 +471,8 @@ local function collapseUI()
     if animating or not MainFrame.Visible then return end
     animating = true
 
-    -- 关闭前禁用所有功能
-    disableAllFeatures()
+    -- 关闭前禁用所有功能（延迟调用，确保函数已定义）
+    if disableAllFeatures then pcall(disableAllFeatures) end
 
     local targetPos = openBtn.Position
     local centerPos = UDim2.new(0.5, -25, 0.5, -25)
