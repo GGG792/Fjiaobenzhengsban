@@ -50,7 +50,7 @@ local function loadModule(moduleName)
     end)
     if success then
         loadedModules[moduleName] = result
-        Window:Notify({
+        ChronixUI:Notify({
             Title = "模块加载",
             Content = moduleName .. " 加载成功",
             Type = "success",
@@ -58,7 +58,7 @@ local function loadModule(moduleName)
         })
         return result
     else
-        Window:Notify({
+        ChronixUI:Notify({
             Title = "模块加载失败",
             Content = moduleName .. " 加载失败: " .. tostring(result):sub(1, 50),
             Type = "error",
@@ -75,7 +75,7 @@ local PlayerTab = Window:CreateTab({Name = "玩家功能", HasIcon = false})
 
 -- 飞行
 PlayerTab:AddToggle({
-    Name = "启用飞行",
+    Label = "启用飞行",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Fly")
@@ -85,7 +85,7 @@ PlayerTab:AddToggle({
 
 -- 旋转
 PlayerTab:AddToggle({
-    Name = "旋转脚本",
+    Label = "旋转脚本",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Spin")
@@ -95,7 +95,7 @@ PlayerTab:AddToggle({
 
 -- 环绕
 PlayerTab:AddToggle({
-    Name = "环绕旋转",
+    Label = "环绕旋转",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Orbit")
@@ -105,7 +105,7 @@ PlayerTab:AddToggle({
 
 -- 无头
 PlayerTab:AddToggle({
-    Name = "无头效果",
+    Label = "无头效果",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Headless")
@@ -115,7 +115,7 @@ PlayerTab:AddToggle({
 
 -- 燃烧
 PlayerTab:AddToggle({
-    Name = "燃烧效果",
+    Label = "燃烧效果",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("FireEffect")
@@ -125,7 +125,7 @@ PlayerTab:AddToggle({
 
 -- 烟雾
 PlayerTab:AddToggle({
-    Name = "烟雾效果",
+    Label = "烟雾效果",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("SmokeEffect")
@@ -135,7 +135,7 @@ PlayerTab:AddToggle({
 
 -- 加速
 PlayerTab:AddToggle({
-    Name = "加速脚本",
+    Label = "加速脚本",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Speed")
@@ -145,7 +145,7 @@ PlayerTab:AddToggle({
 
 -- 跳跃增强
 PlayerTab:AddToggle({
-    Name = "跳跃增强",
+    Label = "跳跃增强",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Jump")
@@ -155,7 +155,7 @@ PlayerTab:AddToggle({
 
 -- 穿墙
 PlayerTab:AddToggle({
-    Name = "穿墙脚本",
+    Label = "穿墙脚本",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Noclip")
@@ -165,7 +165,7 @@ PlayerTab:AddToggle({
 
 -- ESP
 PlayerTab:AddToggle({
-    Name = "ESP透视",
+    Label = "ESP透视",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("ESP")
@@ -175,7 +175,7 @@ PlayerTab:AddToggle({
 
 -- 无限连跳
 PlayerTab:AddToggle({
-    Name = "无限连跳",
+    Label = "无限连跳",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("InfiniteJump")
@@ -185,7 +185,7 @@ PlayerTab:AddToggle({
 
 -- 点击传送
 PlayerTab:AddToggle({
-    Name = "点击传送",
+    Label = "点击传送",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("ClickTP")
@@ -195,7 +195,7 @@ PlayerTab:AddToggle({
 
 -- 自由相机
 PlayerTab:AddToggle({
-    Name = "自由相机",
+    Label = "自由相机",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("Freecam")
@@ -208,7 +208,7 @@ local ProtectTab = Window:CreateTab({Name = "防护功能", HasIcon = false})
 
 -- 防挂机
 ProtectTab:AddToggle({
-    Name = "防挂机",
+    Label = "防挂机",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("AntiAFK")
@@ -218,7 +218,7 @@ ProtectTab:AddToggle({
 
 -- 防甩飞
 ProtectTab:AddToggle({
-    Name = "防甩飞",
+    Label = "防甩飞",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("AntiFling")
@@ -228,7 +228,7 @@ ProtectTab:AddToggle({
 
 -- 防踢出
 ProtectTab:AddToggle({
-    Name = "防踢出",
+    Label = "防踢出",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("AntiFling")
@@ -241,7 +241,7 @@ local VisualTab = Window:CreateTab({Name = "视觉功能", HasIcon = false})
 
 -- 夜视
 VisualTab:AddToggle({
-    Name = "夜视模式",
+    Label = "夜视模式",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("NightVision")
@@ -251,7 +251,7 @@ VisualTab:AddToggle({
 
 -- X光
 VisualTab:AddToggle({
-    Name = "X光透视",
+    Label = "X光透视",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("NightVision")
@@ -264,7 +264,7 @@ local VehicleTab = Window:CreateTab({Name = "载具功能", HasIcon = false})
 
 -- 车辆加速
 VehicleTab:AddToggle({
-    Name = "车辆加速",
+    Label = "车辆加速",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("CarBoost")
@@ -277,7 +277,7 @@ local ToolTab = Window:CreateTab({Name = "工具功能", HasIcon = false})
 
 -- 快速互动
 ToolTab:AddToggle({
-    Name = "快速互动",
+    Label = "快速互动",
     Default = false,
     Callback = function(Value)
         local mod = loadModule("InstantAction")
@@ -287,12 +287,12 @@ ToolTab:AddToggle({
 
 -- 路径点
 ToolTab:AddButton({
-    Name = "添加路径点",
+    Text = "添加路径点",
     Callback = function()
         local mod = loadModule("Waypoint")
         if mod and mod.add then
             mod.add("路径点 " .. os.time())
-            Window:Notify({
+            ChronixUI:Notify({
                 Title = "路径点",
                 Content = "已添加当前位置",
                 Type = "success",
@@ -303,7 +303,7 @@ ToolTab:AddButton({
 })
 
 ToolTab:AddButton({
-    Name = "传送到路径点",
+    Text = "传送到路径点",
     Callback = function()
         local mod = loadModule("Waypoint")
         if mod and mod.getList then
@@ -311,7 +311,7 @@ ToolTab:AddButton({
             if #list > 0 then
                 mod.teleport(1)
             else
-                Window:Notify({
+                ChronixUI:Notify({
                     Title = "路径点",
                     Content = "暂无保存的路径点",
                     Type = "warning",
@@ -323,12 +323,12 @@ ToolTab:AddButton({
 })
 
 ToolTab:AddButton({
-    Name = "清除所有路径点",
+    Text = "清除所有路径点",
     Callback = function()
         local mod = loadModule("Waypoint")
         if mod and mod.clear then
             mod.clear()
-            Window:Notify({
+            ChronixUI:Notify({
                 Title = "路径点",
                 Content = "已清除所有路径点",
                 Type = "info",
@@ -356,10 +356,10 @@ local scripts = {
 
 for _, scriptInfo in ipairs(scripts) do
     ServerTab:AddButton({
-        Name = "加载 " .. scriptInfo.name,
+        Text = "加载 " .. scriptInfo.name,
         Callback = function()
             pcall(function() loadstring(game:HttpGet(scriptInfo.url))() end)
-            Window:Notify({
+            ChronixUI:Notify({
                 Title = "加载脚本",
                 Content = scriptInfo.name .. " 已加载",
                 Type = "success",
@@ -373,7 +373,7 @@ end
 local SettingsTab = Window:CreateTab({Name = "设置", IsSettings = true, HasIcon = false})
 
 SettingsTab:AddButton({
-    Name = "清理其他脚本UI",
+    Text = "清理其他脚本UI",
     Callback = function()
         local clearedCount = 0
         pcall(function()
@@ -392,7 +392,7 @@ SettingsTab:AddButton({
                 end
             end
         end)
-        Window:Notify({
+        ChronixUI:Notify({
             Title = "清理完成",
             Content = "已清理 " .. clearedCount .. " 个脚本UI",
             Type = "info",
@@ -402,12 +402,12 @@ SettingsTab:AddButton({
 })
 
 SettingsTab:AddButton({
-    Name = "加载 Infinite Yield",
+    Text = "加载 Infinite Yield",
     Callback = function()
         pcall(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
         end)
-        Window:Notify({
+        ChronixUI:Notify({
             Title = "管理员工具",
             Content = "Infinite Yield 已加载",
             Type = "success",
@@ -417,23 +417,23 @@ SettingsTab:AddButton({
 })
 
 SettingsTab:AddButton({
-    Name = "4:3 比例 (FOV 70)",
+    Text = "4:3 比例 (FOV 70)",
     Callback = function()
         Camera.FieldOfView = 70
-        Window:Notify({Title = "4:3比例", Content = "FOV已设为70", Type = "info", Duration = 2})
+        ChronixUI:Notify({Title = "4:3比例", Content = "FOV已设为70", Type = "info", Duration = 2})
     end
 })
 
 SettingsTab:AddButton({
-    Name = "超广角 (FOV 120)",
+    Text = "超广角 (FOV 120)",
     Callback = function()
         Camera.FieldOfView = 120
-        Window:Notify({Title = "超广角", Content = "FOV已设为120", Type = "info", Duration = 2})
+        ChronixUI:Notify({Title = "超广角", Content = "FOV已设为120", Type = "info", Duration = 2})
     end
 })
 
 -- 初始通知
-Window:Notify({
+ChronixUI:Notify({
     Title = "F脚本中心",
     Content = "v6.0 已加载 | 使用 ChronixHub UI 库 | 共 " .. #scripts .. " 个服务器脚本",
     Type = "success",
