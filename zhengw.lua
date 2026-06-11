@@ -1,5 +1,5 @@
--- F脚本中心 v5.0 全面优化版
--- 优化：更大界面、按钮图标、流畅动画、点击反馈
+-- F脚本中心 v6.0 模块化版本
+-- 所有功能通过模块动态加载
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -23,439 +23,402 @@ pcall(function()
     if LocalPlayer.PlayerGui:FindFirstChild("FScriptHub") then LocalPlayer.PlayerGui.FScriptHub:Destroy() end
 end)
 
--- ========== 屏幕适配 ==========
-local screenSize = Camera.ViewportSize
-local isMobile = UserInputService.TouchEnabled
-local baseWidth, baseHeight = 600, 480
-local scale = math.min(screenSize.X / baseWidth, screenSize.Y / baseHeight, 1.2)
-if isMobile then scale = math.min(scale, 1.0) end
+-- 模块基础URL
+local MODULE_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/modules/"
 
-local frameWidth = math.floor(baseWidth * scale)
-local frameHeight = math.floor(baseHeight * scale)
+-- 加载UI框架模块
+local UI = loadstring(game:HttpGet(MODULE_URL .. "UIFramework.lua"))()
 
--- ========== 工具函数 ==========
-local function new(class, parent, props)
-    local obj = Instance.new(class)
-    if parent then obj.Parent = parent end
-    if props then
-        for k, v in pairs(props) do
-            pcall(function() obj[k] = v end)
-        end
-    end
-    return obj
-end
+-- 创建主UI
+local uiElements = UI.createMainUI()
+local ScreenGui = uiElements.ScreenGui
+local MainFrame = uiElements.MainFrame
+local LeftPanel = uiElements.LeftPanel
+local RightPanel = uiElements.RightPanel
+local ScrollFrame = uiElements.ScrollFrame
+local WelcomeLabel = uiElements.WelcomeLabel
+local buttons = uiElements.buttons
+local openBtn = uiElements.openBtn
 
-local function corner(parent, radius)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius or 6)
-    c.Parent = parent
-    return c
-end
-
-local function tween(obj, duration, props, easing, direction)
-    local info = TweenInfo.new(duration or 0.3, easing or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out)
-    local tw = TweenService:Create(obj, info, props)
-    tw:Play()
-    return tw
-end
-
--- ========== 主界面 ==========
-local ScreenGui = new("ScreenGui", LocalPlayer.PlayerGui, {
-    Name = "FScriptHub",
-    ResetOnSpawn = false,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-})
-
-local MainFrame = new("Frame", ScreenGui, {
-    Name = "MainFrame",
-    Size = UDim2.new(0, frameWidth, 0, frameHeight),
-    Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2),
-    BackgroundColor3 = Color3.fromRGB(25,25,30),
-    BackgroundTransparency = 0.2,
-    BorderSizePixel = 0,
-    Active = true,
-    Draggable = true,
-    ClipsDescendants = false,
-    Visible = false
-})
-corner(MainFrame, 16)
-
--- 炫彩边框
-local MainStroke = new("UIStroke", MainFrame, { Thickness = 3, Transparency = 0.15 })
-coroutine.wrap(function()
-    while MainStroke and MainStroke.Parent do
-        MainStroke.Color = Color3.fromHSV((tick()*0.4)%1, 1, 1)
-        RunService.RenderStepped:Wait()
-    end
-end)()
-
--- 标题栏
-local TitleBar = new("Frame", MainFrame, {
-    Size = UDim2.new(1, 0, 0, 55),
-    BackgroundColor3 = Color3.fromRGB(35,35,45),
-    BackgroundTransparency = 0.3,
-    BorderSizePixel = 0
-})
-corner(TitleBar, 16)
-
-local TitleIcon = new("TextLabel", TitleBar, {
-    Size = UDim2.new(0, 40, 0, 40),
-    Position = UDim2.new(0, 10, 0, 7),
-    BackgroundColor3 = Color3.fromRGB(0,162,255),
-    Text = "F",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 22
-})
-corner(TitleIcon, 10)
-
-local TitleText = new("TextLabel", TitleBar, {
-    Size = UDim2.new(0, 200, 0, 25),
-    Position = UDim2.new(0, 58, 0, 6),
-    BackgroundTransparency = 1,
-    Text = "F脚本中心",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 20,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-local SubTitleText = new("TextLabel", TitleBar, {
-    Size = UDim2.new(0, 200, 0, 16),
-    Position = UDim2.new(0, 58, 0, 30),
-    BackgroundTransparency = 1,
-    Text = "v5.0 全面优化版",
-    TextColor3 = Color3.fromRGB(0,255,150),
-    TextSize = 12,
-    Font = Enum.Font.Gotham,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
--- 缩小按钮（最小化到F图标）
-local MinimizeBtn = new("TextButton", TitleBar, {
-    Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -78, 0, 11),
-    BackgroundColor3 = Color3.fromRGB(255, 180, 0),
-    Text = "−",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 20,
-    BorderSizePixel = 0
-})
-corner(MinimizeBtn, 8)
-
--- 横版/竖版切换按钮
-local LayoutBtn = new("TextButton", TitleBar, {
-    Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -116, 0, 11),
-    BackgroundColor3 = Color3.fromRGB(0, 162, 255),
-    Text = "⟲",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 18,
-    BorderSizePixel = 0
-})
-corner(LayoutBtn, 8)
-
--- 删除脚本按钮（清理其他脚本UI）
-local ClearScriptsBtn = new("TextButton", TitleBar, {
-    Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -154, 0, 11),
-    BackgroundColor3 = Color3.fromRGB(255, 50, 80),
-    Text = "🗑",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 16,
-    BorderSizePixel = 0
-})
-corner(ClearScriptsBtn, 8)
-
--- 关闭按钮
-local CloseBtn = new("TextButton", TitleBar, {
-    Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -40, 0, 11),
-    BackgroundColor3 = Color3.fromRGB(255,100,50),
-    Text = "×",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 20,
-    BorderSizePixel = 0
-})
-corner(CloseBtn, 8)
-
--- 左侧按钮列表
-local LeftPanel = new("Frame", MainFrame, {
-    Size = UDim2.new(0, 170, 1, -65),
-    Position = UDim2.new(0, 8, 0, 60),
-    BackgroundColor3 = Color3.fromRGB(35,35,42),
-    BackgroundTransparency = 0.4,
-    BorderSizePixel = 0
-})
-corner(LeftPanel, 12)
-
-local ScrollFrame = new("ScrollingFrame", LeftPanel, {
-    Size = UDim2.new(1, -8, 1, -8),
-    Position = UDim2.new(0, 4, 0, 4),
-    BackgroundTransparency = 1,
-    BorderSizePixel = 0,
-    ScrollBarThickness = 3,
-    CanvasSize = UDim2.new(0, 0, 0, 2000),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y
-})
-
-local ScrollLayout = new("UIListLayout", ScrollFrame, {
-    Padding = UDim.new(0, 6),
-    SortOrder = Enum.SortOrder.LayoutOrder
-})
-
--- 右侧内容区
-local RightPanel = new("Frame", MainFrame, {
-    Size = UDim2.new(1, -190, 1, -65),
-    Position = UDim2.new(0, 182, 0, 60),
-    BackgroundColor3 = Color3.fromRGB(35,35,42),
-    BackgroundTransparency = 0.4,
-    BorderSizePixel = 0
-})
-corner(RightPanel, 12)
-
--- 玩家信息卡
-local PlayerCard = new("Frame", RightPanel, {
-    Size = UDim2.new(1, -10, 0, 80),
-    Position = UDim2.new(0, 5, 0, 5),
-    BackgroundColor3 = Color3.fromRGB(45,45,55),
-    BackgroundTransparency = 0.3,
-    BorderSizePixel = 0
-})
-corner(PlayerCard, 10)
-
-local AvatarImage = new("ImageLabel", PlayerCard, {
-    Size = UDim2.new(0, 56, 0, 56),
-    Position = UDim2.new(0, 10, 0, 12),
-    BackgroundTransparency = 1
-})
-corner(AvatarImage, 28)
-pcall(function() AvatarImage.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420) end)
-
-local NameLabel = new("TextLabel", PlayerCard, {
-    Size = UDim2.new(1, -80, 0, 22),
-    Position = UDim2.new(0, 74, 0, 10),
-    BackgroundTransparency = 1,
-    Text = LocalPlayer.DisplayName,
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 16,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-local RoleLabel = new("TextLabel", PlayerCard, {
-    Size = UDim2.new(1, -80, 0, 18),
-    Position = UDim2.new(0, 74, 0, 32),
-    BackgroundTransparency = 1,
-    Text = currentRole=="author" and "作者" or (currentRole=="vip" and "VIP" or "普通用户"),
-    TextColor3 = currentRole=="author" and Color3.fromRGB(255,215,0) or (currentRole=="vip" and Color3.fromRGB(0,255,150) or Color3.fromRGB(180,180,180)),
-    TextSize = 13,
-    Font = Enum.Font.Gotham,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-local TimeLabel = new("TextLabel", PlayerCard, {
-    Size = UDim2.new(1, -80, 0, 16),
-    Position = UDim2.new(0, 74, 0, 52),
-    BackgroundTransparency = 1,
-    TextColor3 = Color3.fromRGB(150,150,255),
-    TextSize = 11,
-    Font = Enum.Font.Gotham,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-coroutine.wrap(function()
-    while TimeLabel and TimeLabel.Parent do
-        TimeLabel.Text = os.date("%H:%M:%S")
-        task.wait(1)
-    end
-end)()
-
--- 欢迎文字
-local WelcomeLabel = new("TextLabel", RightPanel, {
-    Size = UDim2.new(1, -10, 0, 28),
-    Position = UDim2.new(0, 5, 0, 90),
-    BackgroundTransparency = 1,
-    Text = "欢迎使用 F脚本中心",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 15,
-    Font = Enum.Font.GothamBold
-})
-
--- ========== 按钮定义（带图标） ==========
-local buttonRefs = {}
+-- 功能按钮定义 (id -> 模块名映射)
 local btnDefs = {
-    {name = "启用飞行",    icon = "✈",  color = Color3.fromRGB(0,162,255),   id = "fly"},
-    {name = "旋转脚本",    icon = "🔄", color = Color3.fromRGB(255,100,50),  id = "spin"},
-    {name = "环绕旋转",    icon = "🪐", color = Color3.fromRGB(150,50,255),  id = "orbit"},
-    {name = "无头效果",    icon = "👤", color = Color3.fromRGB(100,100,100),  id = "headless"},
-    {name = "燃烧效果",    icon = "🔥", color = Color3.fromRGB(255,50,0),    id = "fire"},
-    {name = "烟雾效果",    icon = "💨", color = Color3.fromRGB(150,150,150),  id = "smoke"},
-    {name = "加速脚本",    icon = "⚡", color = Color3.fromRGB(255,220,0),   id = "speed"},
-    {name = "跳跃增强",    icon = "🦘", color = Color3.fromRGB(50,255,100),   id = "jump"},
-    {name = "穿墙脚本",    icon = "🧱", color = Color3.fromRGB(180,100,50),  id = "noclip"},
-    {name = "ESP透视",     icon = "👁", color = Color3.fromRGB(255,50,100),  id = "esp"},
-    {name = "车辆加速",    icon = "🏎", color = Color3.fromRGB(255,165,0),   id = "carboost"},
-    {name = "快速互动",    icon = "⚡", color = Color3.fromRGB(0,255,200),   id = "instantaction"},
-    {name = "数据修改器",  icon = "📊", color = Color3.fromRGB(180,100,255), id = "datamod"},
-    {name = "永久存在",    icon = "💾", color = Color3.fromRGB(255,200,100), id = "permanent"},
-    {name = "取消永久",    icon = "🗑", color = Color3.fromRGB(255,100,100),  id = "unpermanent"},
-    {name = "传送玩家",    icon = "📍", color = Color3.fromRGB(0,255,100),   id = "teleport"},
-    {name = "标记此处",    icon = "📌", color = Color3.fromRGB(255,200,0),   id = "markpoint"},
-    {name = "标记列表",    icon = "📋", color = Color3.fromRGB(255,150,50),  id = "marklist"},
-    {name = "管理员工具",  icon = "🛠", color = Color3.fromRGB(255,215,0),   id = "admintool"},
-    {name = "服务器脚本",  icon = "🖥", color = Color3.fromRGB(200,150,255), id = "serverscripts"},
-    {name = "4:3比例",     icon = "📐", color = Color3.fromRGB(255,180,100), id = "ratio43"},
-    {name = "超广角",      icon = "📷", color = Color3.fromRGB(100,255,200), id = "ultrawide"},
-    {name = "切换身份",    icon = "🎭", color = Color3.fromRGB(255,100,255), id = "switchrole"},
-    {name = "赞助作者",    icon = "☕", color = Color3.fromRGB(255,215,0),   id = "sponsor"},
+    {name = "启用飞行",    icon = "✈",  color = Color3.fromRGB(0,162,255),   id = "fly",       module = "Fly"},
+    {name = "旋转脚本",    icon = "🔄", color = Color3.fromRGB(255,100,50),  id = "spin",      module = "Spin"},
+    {name = "环绕旋转",    icon = "🪐", color = Color3.fromRGB(150,50,255),  id = "orbit",     module = "Orbit"},
+    {name = "无头效果",    icon = "👤", color = Color3.fromRGB(100,100,100),  id = "headless",  module = "Headless"},
+    {name = "燃烧效果",    icon = "🔥", color = Color3.fromRGB(255,50,0),    id = "fire",       module = "FireEffect"},
+    {name = "烟雾效果",    icon = "💨", color = Color3.fromRGB(150,150,150),  id = "smoke",      module = "SmokeEffect"},
+    {name = "加速脚本",    icon = "⚡", color = Color3.fromRGB(255,220,0),   id = "speed",      module = "Speed"},
+    {name = "跳跃增强",    icon = "🦘", color = Color3.fromRGB(50,255,100),   id = "jump",       module = "Jump"},
+    {name = "穿墙脚本",    icon = "🧱", color = Color3.fromRGB(180,100,50),  id = "noclip",     module = "Noclip"},
+    {name = "ESP透视",     icon = "👁", color = Color3.fromRGB(255,50,100),  id = "esp",        module = "ESP"},
+    {name = "车辆加速",    icon = "🏎", color = Color3.fromRGB(255,165,0),   id = "carboost",   module = "CarBoost"},
+    {name = "快速互动",    icon = "⚡", color = Color3.fromRGB(0,255,200),   id = "instantaction", module = "InstantAction"},
+    -- 新增ChronixHub功能
+    {name = "防挂机",      icon = "😴", color = Color3.fromRGB(100,255,100), id = "antiafk",    module = "AntiAFK"},
+    {name = "夜视模式",    icon = "🌙", color = Color3.fromRGB(200,200,100), id = "nightvision", module = "NightVision"},
+    {name = "X光透视",     icon = "👓", color = Color3.fromRGB(255,255,0),   id = "xray",       module = "NightVision"},
+    {name = "自由相机",    icon = "📹", color = Color3.fromRGB(150,100,255), id = "freecam",    module = "Freecam"},
+    {name = "点击传送",    icon = "👆", color = Color3.fromRGB(0,200,150),   id = "clicktp",    module = "ClickTP"},
+    {name = "无限连跳",    icon = "🦘", color = Color3.fromRGB(50,200,255),  id = "infjump",    module = "InfiniteJump"},
+    {name = "防甩飞",      icon = "🛡", color = Color3.fromRGB(255,100,100), id = "antifling",  module = "AntiFling"},
+    {name = "防踢出",      icon = "🚫", color = Color3.fromRGB(255,50,50),   id = "antikick",   module = "AntiFling"},
+    {name = "路径点",      icon = "📍", color = Color3.fromRGB(0,255,100),   id = "waypoint",   module = "Waypoint"},
+    -- 特殊功能（非模块）
+    {name = "数据修改器",  icon = "📊", color = Color3.fromRGB(180,100,255), id = "datamod",    module = nil},
+    {name = "永久存在",    icon = "💾", color = Color3.fromRGB(255,200,100), id = "permanent",  module = nil},
+    {name = "取消永久",    icon = "🗑", color = Color3.fromRGB(255,100,100),  id = "unpermanent", module = nil},
+    {name = "传送玩家",    icon = "📍", color = Color3.fromRGB(0,255,100),   id = "teleport",   module = nil},
+    {name = "标记此处",    icon = "📌", color = Color3.fromRGB(255,200,0),   id = "markpoint",  module = nil},
+    {name = "标记列表",    icon = "📋", color = Color3.fromRGB(255,150,50),  id = "marklist",   module = nil},
+    {name = "管理员工具",  icon = "🛠", color = Color3.fromRGB(255,215,0),   id = "admintool",  module = nil},
+    {name = "服务器脚本",  icon = "🖥", color = Color3.fromRGB(200,150,255), id = "serverscripts", module = nil},
+    {name = "4:3比例",     icon = "📐", color = Color3.fromRGB(255,180,100), id = "ratio43",    module = nil},
+    {name = "超广角",      icon = "📷", color = Color3.fromRGB(100,255,200), id = "ultrawide",  module = nil},
+    {name = "切换身份",    icon = "🎭", color = Color3.fromRGB(255,100,255), id = "switchrole", module = nil},
+    {name = "赞助作者",    icon = "☕", color = Color3.fromRGB(255,215,0),   id = "sponsor",    module = nil},
 }
 
--- ========== 创建带图标的按钮 ==========
-for i, info in ipairs(btnDefs) do
-    local btn = new("TextButton", ScrollFrame, {
-        Name = info.id.."Btn",
-        Size = UDim2.new(1, -8, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(50,50,60),
-        Text = "",
-        BorderSizePixel = 0,
-        LayoutOrder = i,
-        AutoButtonColor = false
-    })
-    corner(btn, 8)
+-- 已加载的模块缓存
+local loadedModules = {}
+local buttonRefs = {}
+local buttonStates = {} -- 记录按钮状态
+local savedLocations = {} -- 标记点列表
+local isPermanent = false
 
-    -- 图标
-    local iconLabel = new("TextLabel", btn, {
-        Size = UDim2.new(0, 28, 0, 28),
-        Position = UDim2.new(0, 6, 0, 5),
-        BackgroundTransparency = 1,
-        Text = info.icon,
-        TextSize = 18,
-        Font = Enum.Font.GothamBold
-    })
-
-    -- 文字
-    local textLabel = new("TextLabel", btn, {
-        Name = "BtnText",
-        Size = UDim2.new(1, -44, 1, 0),
-        Position = UDim2.new(0, 32, 0, 0),
-        BackgroundTransparency = 1,
-        Text = info.name,
-        TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 11,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextScaled = false
-    })
-
-    -- 颜色条
-    local colorBar = new("Frame", btn, {
-        Size = UDim2.new(0, 3, 0.6, 0),
-        Position = UDim2.new(1, -6, 0.2, 0),
-        BackgroundColor3 = info.color,
-        BorderSizePixel = 0
-    })
-    corner(colorBar, 2)
-
-    -- ========== 按钮动画效果 ==========
-    local originalColor = Color3.fromRGB(50,50,60)
-    local hoverColor = Color3.fromRGB(65,65,80)
-    local clickColor = Color3.fromRGB(80,80,100)
-
-    btn.MouseEnter:Connect(function()
-        tween(btn, 0.2, {BackgroundColor3 = hoverColor, Size = UDim2.new(1, -4, 0, 40)})
+-- 加载模块函数
+local function loadModule(moduleName)
+    if loadedModules[moduleName] then
+        return loadedModules[moduleName]
+    end
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(MODULE_URL .. moduleName .. ".lua"))()
     end)
-
-    btn.MouseLeave:Connect(function()
-        tween(btn, 0.2, {BackgroundColor3 = originalColor, Size = UDim2.new(1, -8, 0, 38)})
-    end)
-
-    btn.MouseButton1Down:Connect(function()
-        tween(btn, 0.1, {BackgroundColor3 = clickColor, Size = UDim2.new(1, -12, 0, 36)})
-    end)
-
-    btn.MouseButton1Up:Connect(function()
-        tween(btn, 0.15, {BackgroundColor3 = hoverColor, Size = UDim2.new(1, -4, 0, 40)})
-    end)
-
-    buttonRefs[info.id] = btn
-end
-
--- ========== 权限控制 ==========
-if LocalPlayer.Name ~= AUTHOR_NAME then
-    for _, id in ipairs({"markpoint","marklist","serverscripts","switchrole"}) do
-        local b = buttonRefs[id]
-        if b then b.Visible = false end
+    if success then
+        loadedModules[moduleName] = result
+        return result
+    else
+        warn("[F脚本中心] 加载模块失败: " .. moduleName .. " - " .. tostring(result))
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "模块加载失败", Text = moduleName .. " 加载失败", Duration = 3
+            })
+        end)
+        return nil
     end
 end
 
-local datamodBtn = buttonRefs["datamod"]
-if datamodBtn and not isVIP then
-    local txt = datamodBtn:FindFirstChild("BtnText")
-    if txt then txt.Text = "数据修改器 (VIP)" end
-    datamodBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
+-- 更新按钮状态显示
+local function updateButtonState(id, isActive)
+    buttonStates[id] = isActive
+    local btn = buttonRefs[id]
+    if not btn then return end
+    local textLabel = btn:FindFirstChild("BtnText")
+    if textLabel then
+        local originalName = nil
+        for _, info in ipairs(btnDefs) do
+            if info.id == id then
+                originalName = info.name
+                break
+            end
+        end
+        if originalName then
+            textLabel.Text = isActive and (originalName .. " ✓") or originalName
+            textLabel.TextColor3 = isActive and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(255, 255, 255)
+        end
+    end
+end
+
+-- 创建按钮并绑定点击事件
+for i, info in ipairs(btnDefs) do
+    local btn = UI.createFeatureButton(ScrollFrame, info, i)
+    buttonRefs[info.id] = btn
+    buttonStates[info.id] = false
+
+    btn.MouseButton1Click:Connect(function()
+        -- 点击动画
+        UI.tween(btn, 0.1, {BackgroundColor3 = Color3.fromRGB(80,80,100), Size = UDim2.new(1, -12, 0, 36)})
+        task.delay(0.1, function()
+            UI.tween(btn, 0.15, {BackgroundColor3 = Color3.fromRGB(65,65,80), Size = UDim2.new(1, -4, 0, 40)})
+        end)
+
+        -- 处理模块按钮
+        if info.module then
+            local mod = loadModule(info.module)
+            if mod then
+                local success, result = pcall(function()
+                    -- 特殊处理：NightVision有两个功能
+                    if info.id == "nightvision" and mod.toggleNightVision then
+                        return mod.toggleNightVision()
+                    elseif info.id == "xray" and mod.toggleXRay then
+                        return mod.toggleXRay()
+                    elseif info.id == "antifling" and mod.toggleAntiFling then
+                        return mod.toggleAntiFling()
+                    elseif info.id == "antikick" and mod.toggleAntiKick then
+                        return mod.toggleAntiKick()
+                    elseif mod.toggle then
+                        return mod.toggle()
+                    end
+                    return false
+                end)
+                if success then
+                    updateButtonState(info.id, result)
+                    pcall(function()
+                        game:GetService("StarterGui"):SetCore("SendNotification", {
+                            Title = info.name,
+                            Text = result and (info.name .. " 已启用") or (info.name .. " 已关闭"),
+                            Duration = 2
+                        })
+                    end)
+                else
+                    warn("[F脚本中心] " .. info.name .. " 执行失败: " .. tostring(result))
+                end
+            end
+            return
+        end
+
+        -- 处理非模块的特殊功能
+        if info.id == "datamod" then
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "数据修改器", Text = "请在控制台使用", Duration = 3
+                })
+            end)
+
+        elseif info.id == "permanent" then
+            isPermanent = true
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "永久存在", Text = "已启用永久存在模式", Duration = 3
+                })
+            end)
+            updateButtonState(info.id, true)
+
+        elseif info.id == "unpermanent" then
+            isPermanent = false
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "取消永久", Text = "已关闭永久存在模式", Duration = 3
+                })
+            end)
+            updateButtonState("permanent", false)
+
+        elseif info.id == "teleport" then
+            -- 简单的传送输入框
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "传送玩家", Text = "点击玩家即可传送", Duration = 3
+                })
+            end)
+            -- 临时点击传送
+            local conn
+            conn = UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    local mouse = LocalPlayer:GetMouse()
+                    if mouse.Target then
+                        local char = LocalPlayer.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+                        end
+                    end
+                    if conn then conn:Disconnect() end
+                end
+            end)
+
+        elseif info.id == "markpoint" then
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local pos = char.HumanoidRootPart.Position
+                table.insert(savedLocations, {name = "标记 " .. #savedLocations + 1, pos = pos})
+                pcall(function()
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "标记此处", Text = "已保存当前位置", Duration = 2
+                    })
+                end)
+            end
+
+        elseif info.id == "marklist" then
+            if #savedLocations == 0 then
+                pcall(function()
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "标记列表", Text = "暂无保存的位置", Duration = 2
+                    })
+                end)
+            else
+                local listText = ""
+                for i, loc in ipairs(savedLocations) do
+                    listText = listText .. i .. ". " .. loc.name .. "\n"
+                end
+                pcall(function()
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "标记列表 (共" .. #savedLocations .. "个)", Text = listText, Duration = 5
+                    })
+                end)
+            end
+
+        elseif info.id == "admintool" then
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+            end)
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "管理员工具", Text = "Infinite Yield 已加载", Duration = 3
+                })
+            end)
+
+        elseif info.id == "serverscripts" then
+            -- 服务器脚本弹窗
+            pcall(function()
+                local scripts = {
+                    {name = "自然灾害", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/ziran.lua"},
+                    {name = " Brookhaven", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/brookhaven.lua"},
+                    {name = "监狱人生", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/prisonlife.lua"},
+                    {name = "收养我", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/adoptme.lua"},
+                    {name = " Blox Fruits", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bloxfruits.lua"},
+                    {name = " King Legacy", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/kinglegacy.lua"},
+                    {name = " Arsenal", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/arsenal.lua"},
+                    {name = " Phantom Forces", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/phantomforces.lua"},
+                    {name = " Doors", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/doors.lua"},
+                    {name = " Bedwars", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bedwars.lua"},
+                }
+
+                local popup = Instance.new("Frame")
+                popup.Name = "ServerScriptsPopup"
+                popup.Size = UDim2.new(0, 300, 0, 350)
+                popup.Position = UDim2.new(0.5, -150, 0.5, -175)
+                popup.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                popup.BackgroundTransparency = 0.1
+                popup.BorderSizePixel = 0
+                popup.Parent = ScreenGui
+                popup.ZIndex = 50
+
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 12)
+                corner.Parent = popup
+
+                local title = Instance.new("TextLabel")
+                title.Size = UDim2.new(1, 0, 0, 40)
+                title.BackgroundTransparency = 1
+                title.Text = "🖥 服务器脚本"
+                title.TextColor3 = Color3.fromRGB(255, 255, 255)
+                title.TextSize = 16
+                title.Font = Enum.Font.GothamBold
+                title.Parent = popup
+
+                local closeBtn = Instance.new("TextButton")
+                closeBtn.Size = UDim2.new(0, 30, 0, 30)
+                closeBtn.Position = UDim2.new(1, -35, 0, 5)
+                closeBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+                closeBtn.Text = "×"
+                closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                closeBtn.Font = Enum.Font.GothamBold
+                closeBtn.TextSize = 18
+                closeBtn.Parent = popup
+                Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+                closeBtn.MouseButton1Click:Connect(function() popup:Destroy() end)
+
+                local scroll = Instance.new("ScrollingFrame")
+                scroll.Size = UDim2.new(1, -10, 1, -50)
+                scroll.Position = UDim2.new(0, 5, 0, 45)
+                scroll.BackgroundTransparency = 1
+                scroll.BorderSizePixel = 0
+                scroll.ScrollBarThickness = 4
+                scroll.CanvasSize = UDim2.new(0, 0, 0, #scripts * 45)
+                scroll.Parent = popup
+
+                local layout = Instance.new("UIListLayout")
+                layout.Padding = UDim.new(0, 5)
+                layout.SortOrder = Enum.SortOrder.LayoutOrder
+                layout.Parent = scroll
+
+                for idx, scriptInfo in ipairs(scripts) do
+                    local sbtn = Instance.new("TextButton")
+                    sbtn.Size = UDim2.new(1, -5, 0, 40)
+                    sbtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+                    sbtn.Text = scriptInfo.name
+                    sbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    sbtn.TextSize = 13
+                    sbtn.Font = Enum.Font.GothamBold
+                    sbtn.LayoutOrder = idx
+                    sbtn.Parent = scroll
+                    Instance.new("UICorner", sbtn).CornerRadius = UDim.new(0, 8)
+
+                    sbtn.MouseButton1Click:Connect(function()
+                        pcall(function()
+                            loadstring(game:HttpGet(scriptInfo.url))()
+                        end)
+                        pcall(function()
+                            game:GetService("StarterGui"):SetCore("SendNotification", {
+                                Title = "加载脚本", Text = scriptInfo.name .. " 已加载", Duration = 3
+                            })
+                        end)
+                    end)
+                end
+            end)
+
+        elseif info.id == "ratio43" then
+            Camera.FieldOfView = 70
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "4:3比例", Text = "FOV已设为70", Duration = 2
+                })
+            end)
+
+        elseif info.id == "ultrawide" then
+            Camera.FieldOfView = 120
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "超广角", Text = "FOV已设为120", Duration = 2
+                })
+            end)
+
+        elseif info.id == "switchrole" then
+            currentRole = currentRole == "normal" and "vip" or "normal"
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "切换身份", Text = "当前身份: " .. currentRole, Duration = 2
+                })
+            end)
+
+        elseif info.id == "sponsor" then
+            pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "赞助作者", Text = "感谢支持！请联系作者: noobnewfggg", Duration = 4
+                })
+            end)
+        end
+    end)
 end
 
 -- ========== 展开/收起动画 ==========
-local openBtn, animating = nil, false
+local animating = false
 
--- 创建悬浮F按钮
-openBtn = new("TextButton", ScreenGui, {
-    Name = "OpenBtn",
-    Size = UDim2.new(0, 50, 0, 50),
-    Position = UDim2.new(0, 15, 0.5, -25),
-    BackgroundColor3 = Color3.fromRGB(0,162,255),
-    Text = "F",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 24,
-    BorderSizePixel = 0,
-    ZIndex = 100,
-    Active = true,
-    Draggable = true
-})
-corner(openBtn, 14)
-
--- 展开动画：F按钮缩小→移到中间→淡出，同时主界面从中间放大出现
 local function expandUI()
     if animating then return end
     animating = true
-
     local startPos = openBtn.Position
     local centerPos = UDim2.new(0.5, -25, 0.5, -25)
 
-    -- 阶段1：F按钮缩小并移到屏幕中心
-    tween(openBtn, 0.35, {
+    UI.tween(openBtn, 0.35, {
         Position = centerPos,
         Size = UDim2.new(0, 30, 0, 30),
         BackgroundTransparency = 0.5
-    }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    })
 
     task.delay(0.35, function()
-        -- 阶段2：F按钮淡出
-        tween(openBtn, 0.25, {
-            BackgroundTransparency = 1,
-            TextTransparency = 1
-        })
-
-        -- 同时主界面从中心出现
+        UI.tween(openBtn, 0.25, {BackgroundTransparency = 1, TextTransparency = 1})
         MainFrame.Position = centerPos
         MainFrame.Size = UDim2.new(0, 60, 0, 50)
         MainFrame.BackgroundTransparency = 1
         MainFrame.Visible = true
 
-        -- 阶段3：主界面放大到正常尺寸
-        tween(MainFrame, 0.5, {
-            Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2),
-            Size = UDim2.new(0, frameWidth, 0, frameHeight),
+        UI.tween(MainFrame, 0.5, {
+            Position = UDim2.new(0.5, -uiElements.frameWidth/2, 0.5, -uiElements.frameHeight/2),
+            Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight),
             BackgroundTransparency = 0.2
-        }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        }, Enum.EasingStyle.Back)
 
         task.delay(0.5, function()
-            -- 恢复F按钮状态（隐藏）
             openBtn.Position = startPos
             openBtn.Size = UDim2.new(0, 50, 0, 50)
             openBtn.BackgroundTransparency = 0
@@ -466,26 +429,20 @@ local function expandUI()
     end)
 end
 
--- 收起动画：主界面缩小→移到F按钮位置→淡出，同时F按钮出现
 local function collapseUI()
     if animating or not MainFrame.Visible then return end
     animating = true
 
-    -- 关闭前禁用所有功能（延迟调用，确保函数已定义）
-    if disableAllFeatures then pcall(disableAllFeatures) end
-
     local targetPos = openBtn.Position
     local centerPos = UDim2.new(0.5, -25, 0.5, -25)
 
-    -- 阶段1：主界面缩小到中心
-    tween(MainFrame, 0.35, {
+    UI.tween(MainFrame, 0.35, {
         Position = centerPos,
         Size = UDim2.new(0, 60, 0, 50),
         BackgroundTransparency = 0.8
     }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 
     task.delay(0.35, function()
-        -- 阶段2：主界面淡出，F按钮出现
         MainFrame.Visible = false
         openBtn.Visible = true
         openBtn.Position = centerPos
@@ -493,13 +450,12 @@ local function collapseUI()
         openBtn.BackgroundTransparency = 1
         openBtn.TextTransparency = 1
 
-        -- F按钮放大回到原位
-        tween(openBtn, 0.4, {
+        UI.tween(openBtn, 0.4, {
             Position = targetPos,
             Size = UDim2.new(0, 50, 0, 50),
             BackgroundTransparency = 0,
             TextTransparency = 0
-        }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        }, Enum.EasingStyle.Back)
 
         task.delay(0.4, function()
             animating = false
@@ -508,1602 +464,109 @@ local function collapseUI()
 end
 
 openBtn.MouseButton1Click:Connect(function()
-    if MainFrame.Visible then
-        collapseUI()
-    else
-        expandUI()
-    end
+    if MainFrame.Visible then collapseUI() else expandUI() end
 end)
 
-CloseBtn.MouseButton1Click:Connect(collapseUI)
+buttons.Close.MouseButton1Click:Connect(collapseUI)
+buttons.Minimize.MouseButton1Click:Connect(collapseUI)
 
--- 缩小按钮功能（最小化到F图标）
-MinimizeBtn.MouseButton1Click:Connect(function()
-    collapseUI()
-end)
-
--- 横版/竖版切换功能
+-- 横版/竖版切换
 local isHorizontal = false
-local originalLeftPanelSize = UDim2.new(0, 170, 1, -65)
-local originalLeftPanelPos = UDim2.new(0, 8, 0, 60)
-local originalRightPanelSize = UDim2.new(1, -190, 1, -65)
-local originalRightPanelPos = UDim2.new(0, 182, 0, 60)
-local originalMainFrameSize = UDim2.new(0, frameWidth, 0, frameHeight)
-
-LayoutBtn.MouseButton1Click:Connect(function()
+buttons.Layout.MouseButton1Click:Connect(function()
     if animating then return end
     animating = true
     isHorizontal = not isHorizontal
 
     if isHorizontal then
-        -- 切换到横版：左侧按钮移到上方，内容区在下方
-        tween(LeftPanel, 0.4, {
-            Size = UDim2.new(1, -16, 0, 120),
-            Position = UDim2.new(0, 8, 0, 60)
-        })
-        tween(RightPanel, 0.4, {
-            Size = UDim2.new(1, -16, 1, -190),
-            Position = UDim2.new(0, 8, 0, 185)
-        })
-        -- 调整主界面为横版比例
-        tween(MainFrame, 0.4, {
-            Size = UDim2.new(0, math.min(frameWidth * 1.3, screenSize.X * 0.9), 0, frameHeight)
-        })
-        LayoutBtn.Text = "⟳"
+        UI.tween(LeftPanel, 0.4, {Size = UDim2.new(1, -16, 0, 120), Position = UDim2.new(0, 8, 0, 60)})
+        UI.tween(RightPanel, 0.4, {Size = UDim2.new(1, -16, 1, -190), Position = UDim2.new(0, 8, 0, 185)})
+        UI.tween(MainFrame, 0.4, {Size = UDim2.new(0, math.min(uiElements.frameWidth * 1.3, Camera.ViewportSize.X * 0.9), 0, uiElements.frameHeight)})
+        buttons.Layout.Text = "⟳"
     else
-        -- 切换回竖版
-        tween(LeftPanel, 0.4, {
-            Size = originalLeftPanelSize,
-            Position = originalLeftPanelPos
-        })
-        tween(RightPanel, 0.4, {
-            Size = originalRightPanelSize,
-            Position = originalRightPanelPos
-        })
-        tween(MainFrame, 0.4, {
-            Size = originalMainFrameSize
-        })
-        LayoutBtn.Text = "⟲"
+        UI.tween(LeftPanel, 0.4, {Size = UDim2.new(0, 170, 1, -65), Position = UDim2.new(0, 8, 0, 60)})
+        UI.tween(RightPanel, 0.4, {Size = UDim2.new(1, -190, 1, -65), Position = UDim2.new(0, 182, 0, 60)})
+        UI.tween(MainFrame, 0.4, {Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight)})
+        buttons.Layout.Text = "⟲"
     end
 
-    task.delay(0.4, function()
-        animating = false
-    end)
+    task.delay(0.4, function() animating = false end)
 end)
 
--- 删除脚本按钮功能（清理其他脚本创建的UI）
-ClearScriptsBtn.MouseButton1Click:Connect(function()
+-- 删除脚本按钮
+buttons.ClearScripts.MouseButton1Click:Connect(function()
     local clearedCount = 0
-
-    -- 清理PlayerGui中其他脚本的ScreenGui
     pcall(function()
         for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
             if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
-                -- 检查是否是常见脚本UI名称
-                local scriptNames = {"VicoImmersiveUI", "Aero", "WindUI", "SynapseX", "Krnl", "Fluxus", "ScriptWare", "OxygenU", "Comet", "Electron", "ScriptUI", "ScriptHub", "GameUI", "ModMenu", "CheatMenu", "HackUI", "ExploitUI", "InjectUI"}
-                local isScriptUI = false
-                for _, name in ipairs(scriptNames) do
-                    if gui.Name:find(name) or name:find(gui.Name) then
-                        isScriptUI = true
-                        break
-                    end
-                end
-                -- 也检查是否包含大量交互元素（可能是脚本UI）
-                if not isScriptUI then
-                    local interactableCount = 0
-                    for _, child in ipairs(gui:GetDescendants()) do
-                        if child:IsA("TextButton") or child:IsA("ImageButton") or child:IsA("Toggle") then
-                            interactableCount = interactableCount + 1
-                        end
-                    end
-                    if interactableCount > 3 then
-                        isScriptUI = true
-                    end
-                end
-                if isScriptUI then
-                    gui:Destroy()
-                    clearedCount = clearedCount + 1
-                end
+                gui:Destroy()
+                clearedCount = clearedCount + 1
             end
         end
     end)
-
-    -- 清理CoreGui中其他脚本的UI
     pcall(function()
         for _, gui in ipairs(CoreGui:GetChildren()) do
             if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
-                local scriptNames = {"VicoImmersiveUI", "Aero", "WindUI", "SynapseX", "Krnl", "Fluxus", "ScriptWare", "OxygenU", "Comet", "Electron", "ScriptUI", "ScriptHub", "GameUI", "ModMenu", "CheatMenu", "HackUI", "ExploitUI", "InjectUI"}
-                local isScriptUI = false
-                for _, name in ipairs(scriptNames) do
-                    if gui.Name:find(name) or name:find(gui.Name) then
-                        isScriptUI = true
-                        break
-                    end
-                end
-                if not isScriptUI then
-                    local interactableCount = 0
-                    for _, child in ipairs(gui:GetDescendants()) do
-                        if child:IsA("TextButton") or child:IsA("ImageButton") then
-                            interactableCount = interactableCount + 1
-                        end
-                    end
-                    if interactableCount > 3 then
-                        isScriptUI = true
-                    end
-                end
-                if isScriptUI then
-                    gui:Destroy()
-                    clearedCount = clearedCount + 1
-                end
+                gui:Destroy()
+                clearedCount = clearedCount + 1
             end
         end
     end)
-
-    -- 清理常见的脚本实例（如BodyVelocity、BodyGyro等飞行相关）
-    pcall(function()
-        if LocalPlayer.Character then
-            for _, obj in ipairs(LocalPlayer.Character:GetDescendants()) do
-                if obj:IsA("BodyVelocity") or obj:IsA("BodyGyro") or obj:IsA("BodyAngularVelocity") or obj:IsA("Highlight") then
-                    if obj.Name == "SpinVelocity" or obj.Name == "RainbowStroke" or obj.Name == "GlowEffect" then
-                        obj:Destroy()
-                        clearedCount = clearedCount + 1
-                    end
-                end
-            end
-        end
-    end)
-
-    -- 通知
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "清理完成",
-            Text = "已清理 " .. clearedCount .. " 个脚本UI",
-            Duration = 3
+            Title = "清理完成", Text = "已清理 " .. clearedCount .. " 个脚本UI", Duration = 3
         })
     end)
 end)
 
--- 初始显示展开动画
+-- 关闭时禁用所有功能
+local function disableAllFeatures()
+    for id, state in pairs(buttonStates) do
+        if state then
+            for _, info in ipairs(btnDefs) do
+                if info.id == id and info.module then
+                    local mod = loadedModules[info.module]
+                    if mod then
+                        pcall(function()
+                            if id == "nightvision" and mod.disableNightVision then
+                                mod.disableNightVision()
+                            elseif id == "xray" and mod.disableXRay then
+                                mod.disableXRay()
+                            elseif id == "antifling" and mod.disableAntiFling then
+                                mod.disableAntiFling()
+                            elseif id == "antikick" and mod.disableAntiKick then
+                                mod.disableAntiKick()
+                            elseif mod.disable then
+                                mod.disable()
+                            end
+                        end)
+                    end
+                    updateButtonState(id, false)
+                    break
+                end
+            end
+        end
+    end
+end
+
+-- 监听关闭事件
+ScreenGui.AncestryChanged:Connect(function()
+    if not ScreenGui.Parent then
+        disableAllFeatures()
+    end
+end)
+
+-- 初始显示
 MainFrame.Visible = true
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 MainFrame.BackgroundTransparency = 1
-tween(MainFrame, 0.6, {
-    Size = UDim2.new(0, frameWidth, 0, frameHeight),
+UI.tween(MainFrame, 0.6, {
+    Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight),
     BackgroundTransparency = 0.2
-}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+}, Enum.EasingStyle.Back)
 
--- ========== 功能脚本（保留原有功能） ==========
-local flySpeed, spinSpeed, orbitSpeed = 50, 20, 3
-
--- 速度调节
-local function createSpeedInput(name, def, cb)
-    local row = new("Frame", ScrollFrame, {
-        Size = UDim2.new(1, -8, 0, 34),
-        BackgroundTransparency = 1
-    })
-    local label = new("TextLabel", row, {
-        Size = UDim2.new(0, 60, 1, 0),
-        BackgroundTransparency = 1,
-        Text = name,
-        TextColor3 = Color3.fromRGB(200,200,200),
-        TextSize = 11,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-    local input = new("TextBox", row, {
-        Size = UDim2.new(1, -100, 1, -6),
-        Position = UDim2.new(0, 65, 0, 3),
-        Text = tostring(def),
-        TextColor3 = Color3.fromRGB(0,0,0),
-        BackgroundColor3 = Color3.fromRGB(255,255,255),
-        Font = Enum.Font.Gotham,
-        TextSize = 11,
-        BorderSizePixel = 0
-    })
-    corner(input, 4)
-    local applyBtn = new("TextButton", row, {
-        Size = UDim2.new(0, 32, 1, -6),
-        Position = UDim2.new(1, -32, 0, 3),
-        BackgroundColor3 = Color3.fromRGB(0,162,255),
-        Text = "OK",
-        TextColor3 = Color3.fromRGB(255,255,255),
-        Font = Enum.Font.GothamBold,
-        TextSize = 11,
-        BorderSizePixel = 0
-    })
-    corner(applyBtn, 4)
-    applyBtn.MouseButton1Click:Connect(function()
-        local n = tonumber(input.Text)
-        if n then cb(n) end
-    end)
-end
-
-createSpeedInput("飞行速度", 50, function(v) flySpeed = v end)
-createSpeedInput("旋转速度", 20, function(v) spinSpeed = v end)
-createSpeedInput("环绕速度", 3, function(v) orbitSpeed = v end)
-
--- ========== 功能实现 ==========
-local flyEnabled = false
-local bodyVel, bodyGyro, flyConn
-
-local function enableFly()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    flyEnabled = true
-    bodyVel = Instance.new("BodyVelocity", hrp)
-    bodyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bodyVel.Velocity = Vector3.zero
-    bodyGyro = Instance.new("BodyGyro", hrp)
-    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bodyGyro.P = 9e4
-end
-
-local function disableFly()
-    flyEnabled = false
-    if bodyVel then bodyVel:Destroy() end
-    if bodyGyro then bodyGyro:Destroy() end
-    if flyConn then flyConn:Disconnect() end
-end
-
-local function flyLoop()
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if not hum then return end
-    flyConn = RunService.RenderStepped:Connect(function()
-        if not flyEnabled or not bodyVel then return end
-        local move = hum.MoveDirection
-        if move.Magnitude == 0 then bodyVel.Velocity = Vector3.zero return end
-        local look = Camera.CFrame.LookVector
-        local right = Camera.CFrame.RightVector
-        local fwd = move:Dot(look)
-        local side = move:Dot(right)
-        local vel = Vector3.zero
-        if fwd > 0.1 then vel = look * flySpeed
-        elseif fwd < -0.1 then vel = Vector3.zero
-        elseif math.abs(side) > 0.1 then vel = right * (side > 0 and 1 or -1) * flySpeed end
-        bodyVel.Velocity = vel
-        if bodyGyro then
-            bodyGyro.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, LocalPlayer.Character.HumanoidRootPart.Position + look)
-        end
-    end)
-end
-
--- 旋转
-local spinEnabled = false
-local function toggleSpin()
-    spinEnabled = not spinEnabled
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if not hrp or not hum then return end
-    if spinEnabled then
-        hum.AutoRotate = false
-        local bav = Instance.new("BodyAngularVelocity", hrp)
-        bav.Name = "SpinVelocity"
-        bav.AngularVelocity = Vector3.new(0, spinSpeed, 0)
-        bav.MaxTorque = Vector3.new(0, 9e9, 0)
-        hum.PlatformStand = false
-    else
-        hum.AutoRotate = true
-        local bav = hrp:FindFirstChild("SpinVelocity")
-        if bav then bav:Destroy() end
-    end
-end
-
--- 环绕
-local orbitEnabled = false
-local orbitConnection, orbitTargetPlayer, orbitAngle = nil, nil, 0
-
-local function stopOrbit()
-    orbitEnabled = false
-    if orbitConnection then orbitConnection:Disconnect() end
-    orbitTargetPlayer = nil
-    local ob = buttonRefs["orbit"]
-    if ob then
-        local txt = ob:FindFirstChild("BtnText")
-        if txt then txt.Text = "环绕旋转" end
-        ob.BackgroundColor3 = Color3.fromRGB(50,50,60)
-    end
-end
-
--- 玩家选择面板
-local PlayerSelectFrame = new("Frame", MainFrame, {
-    Name = "PlayerSelectFrame",
-    Size = UDim2.new(0.75, 0, 0.65, 0),
-    Position = UDim2.new(0.125, 0, 0.175, 0),
-    BackgroundColor3 = Color3.fromRGB(30,30,35),
-    BorderSizePixel = 0,
-    Visible = false,
-    ZIndex = 50
-})
-corner(PlayerSelectFrame, 12)
-
-local SelectTitle = new("TextLabel", PlayerSelectFrame, {
-    Size = UDim2.new(1, 0, 0, 35),
-    Position = UDim2.new(0, 0, 0, 5),
-    BackgroundTransparency = 1,
-    Text = "选择玩家",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 18,
-    Font = Enum.Font.GothamBold,
-    ZIndex = 51
-})
-
-local SelectCloseBtn = new("TextButton", PlayerSelectFrame, {
-    Size = UDim2.new(0, 28, 0, 28),
-    Position = UDim2.new(1, -33, 0, 6),
-    BackgroundColor3 = Color3.fromRGB(255,70,70),
-    Text = "X",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 14,
-    Font = Enum.Font.GothamBold,
-    BorderSizePixel = 0,
-    ZIndex = 51
-})
-corner(SelectCloseBtn, 6)
-SelectCloseBtn.MouseButton1Click:Connect(function() PlayerSelectFrame.Visible = false end)
-
-local PlayerScroll = new("ScrollingFrame", PlayerSelectFrame, {
-    Size = UDim2.new(1, -12, 1, -50),
-    Position = UDim2.new(0, 6, 0, 40),
-    BackgroundColor3 = Color3.fromRGB(40,40,48),
-    BorderSizePixel = 0,
-    ScrollBarThickness = 4,
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ZIndex = 51
-})
-corner(PlayerScroll, 8)
-
-local PlayerListLayout = new("UIListLayout", PlayerScroll, {
-    Padding = UDim.new(0, 5),
-    ZIndex = 51
-})
-
-local function refreshPlayerList()
-    for _, child in ipairs(PlayerScroll:GetChildren()) do
-        if child:IsA("TextButton") then child:Destroy() end
-    end
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local pBtn = new("TextButton", PlayerScroll, {
-                Size = UDim2.new(1, -10, 0, 36),
-                BackgroundColor3 = Color3.fromRGB(55,55,65),
-                Text = player.Name,
-                TextColor3 = Color3.fromRGB(255,255,255),
-                TextSize = 13,
-                Font = Enum.Font.GothamBold,
-                BorderSizePixel = 0,
-                ZIndex = 51
-            })
-            corner(pBtn, 6)
-            pBtn.MouseButton1Click:Connect(function()
-                PlayerSelectFrame.Visible = false
-                orbitTargetPlayer = player
-                orbitEnabled = true
-                orbitAngle = 0
-                if orbitConnection then orbitConnection:Disconnect() end
-                orbitConnection = RunService.RenderStepped:Connect(function(dt)
-                    if not orbitEnabled or not orbitTargetPlayer or not orbitTargetPlayer.Character or not orbitTargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        stopOrbit()
-                        return
-                    end
-                    local myChar = LocalPlayer.Character
-                    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
-                    local myHRP = myChar.HumanoidRootPart
-                    local targetHRP = orbitTargetPlayer.Character.HumanoidRootPart
-                    orbitAngle = orbitAngle + dt * orbitSpeed
-                    local radius = 10
-                    myHRP.CFrame = CFrame.new(targetHRP.Position + Vector3.new(math.cos(orbitAngle)*radius, 3, math.sin(orbitAngle)*radius))
-                end)
-                local ob = buttonRefs["orbit"]
-                if ob then
-                    local txt = ob:FindFirstChild("BtnText")
-                    if txt then txt.Text = "环绕中..." end
-                    ob.BackgroundColor3 = Color3.fromRGB(120,40,200)
-                end
-            end)
-        end
-    end
-end
-
--- 无头
-local headlessEnabled = false
-local function toggleHeadless()
-    headlessEnabled = not headlessEnabled
-    local char = LocalPlayer.Character
-    if not char then return end
-    local head = char:FindFirstChild("Head")
-    if head then
-        head.Transparency = headlessEnabled and 1 or 0
-        for _, v in ipairs(head:GetChildren()) do
-            if v:IsA("Decal") or v:IsA("Texture") then
-                v.Transparency = headlessEnabled and 1 or 0
-            end
-        end
-    end
-    local neck = char:FindFirstChild("Neck", true)
-    if neck and neck:IsA("Motor6D") then
-        neck.Transform = headlessEnabled and CFrame.new(0, -10, 0) or CFrame.new(0, 0, 0)
-    end
-end
-
--- 燃烧
-local fireEnabled = false
-local fireObj
-local function toggleFire()
-    fireEnabled = not fireEnabled
-    local char = LocalPlayer.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    if fireEnabled then
-        fireObj = Instance.new("Fire", hrp)
-        fireObj.Size = 8
-        fireObj.Heat = 10
-        fireObj.Color = Color3.fromRGB(255, 100, 0)
-        fireObj.SecondaryColor = Color3.fromRGB(255, 200, 0)
-        local leftFoot = char:FindFirstChild("Left Foot")
-        local rightFoot = char:FindFirstChild("Right Foot")
-        if leftFoot then
-            local f1 = Instance.new("Fire", leftFoot)
-            f1.Size = 4; f1.Heat = 5; f1.Color = Color3.fromRGB(255, 50, 0)
-            f1.SecondaryColor = Color3.fromRGB(255, 150, 0)
-            f1.Name = "ScriptFire"
-        end
-        if rightFoot then
-            local f2 = Instance.new("Fire", rightFoot)
-            f2.Size = 4; f2.Heat = 5; f2.Color = Color3.fromRGB(255, 50, 0)
-            f2.SecondaryColor = Color3.fromRGB(255, 150, 0)
-            f2.Name = "ScriptFire"
-        end
-    else
-        if fireObj then fireObj:Destroy(); fireObj = nil end
-        for _, p in ipairs(char:GetDescendants()) do
-            if p.Name == "ScriptFire" and p:IsA("Fire") then p:Destroy() end
-        end
-    end
-end
-
--- 烟雾
-local smokeEnabled = false
-local function toggleSmoke()
-    smokeEnabled = not smokeEnabled
-    local char = LocalPlayer.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    if smokeEnabled then
-        local smoke = Instance.new("Smoke", hrp)
-        smoke.Name = "ScriptSmoke"
-        smoke.Size = 8; smoke.Opacity = 0.5; smoke.RiseVelocity = 3
-        smoke.Color = Color3.fromRGB(80, 80, 80)
-        local leftFoot = char:FindFirstChild("Left Foot")
-        local rightFoot = char:FindFirstChild("Right Foot")
-        if leftFoot then
-            local s1 = Instance.new("Smoke", leftFoot)
-            s1.Name = "ScriptSmoke"; s1.Size = 4; s1.Opacity = 0.4
-            s1.RiseVelocity = 2; s1.Color = Color3.fromRGB(60, 60, 60)
-        end
-        if rightFoot then
-            local s2 = Instance.new("Smoke", rightFoot)
-            s2.Name = "ScriptSmoke"; s2.Size = 4; s2.Opacity = 0.4
-            s2.RiseVelocity = 2; s2.Color = Color3.fromRGB(60, 60, 60)
-        end
-    else
-        for _, p in ipairs(char:GetDescendants()) do
-            if p.Name == "ScriptSmoke" and p:IsA("Smoke") then p:Destroy() end
-        end
-    end
-end
-
--- 加速
-local speedEnabled = false
-local originalWalkSpeed = 16
-local function toggleSpeed()
-    speedEnabled = not speedEnabled
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = speedEnabled and 50 or originalWalkSpeed end
-end
-
--- 跳跃
-local jumpEnabled = false
-local originalJumpPower = 50
-local function toggleJump()
-    jumpEnabled = not jumpEnabled
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then
-        hum.JumpPower = jumpEnabled and 150 or originalJumpPower
-        hum.UseJumpPower = jumpEnabled
-    end
-end
-
--- 穿墙
-local noclipEnabled = false
-local noclipConn
-local function startNoclip()
-    noclipConn = RunService.Stepped:Connect(function()
-        if LocalPlayer.Character then
-            for _, v in ipairs(LocalPlayer.Character:GetDescendants()) do
-                if v:IsA("BasePart") and v.CanCollide then v.CanCollide = false end
-            end
-        end
-    end)
-end
-local function stopNoclip()
-    if noclipConn then noclipConn:Disconnect() end
-    if LocalPlayer.Character then
-        for _, v in ipairs(LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = true end
-        end
-    end
-end
-local function toggleNoclip()
-    noclipEnabled = not noclipEnabled
-    if noclipEnabled then startNoclip() else stopNoclip() end
-end
-
--- ESP
-local espEnabled = false
-local espObjects = {}
-local function clearESP()
-    for _, obj in ipairs(espObjects) do
-        if obj.Parent then obj:Destroy() end
-    end
-    espObjects = {}
-end
-local function createESP()
-    clearESP()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local hl = Instance.new("Highlight", player.Character)
-            hl.FillColor = Color3.fromRGB(255, 0, 0)
-            hl.FillTransparency = 0.7
-            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-            hl.OutlineTransparency = 0
-            table.insert(espObjects, hl)
-        end
-    end
-end
-
--- 车辆加速
-local carboostEnabled = false
-local carboostConn
-local function enableCarBoost()
-    if carboostEnabled then return end
-    carboostEnabled = true
-    carboostConn = RunService.RenderStepped:Connect(function()
-        local seat = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Seat")
-        if seat and seat:IsA("VehicleSeat") then
-            local vehicle = seat:FindFirstAncestorOfClass("Model")
-            if vehicle then
-                for _, p in ipairs(vehicle:GetDescendants()) do
-                    if p:IsA("Motor") or p:IsA("HingeConstraint") or p:IsA("PrismaticConstraint") then
-                        p.Speed = p.MaxSpeed or 1000
-                    end
-                end
-            end
-        end
-    end)
-    local btn = buttonRefs["carboost"]
-    if btn then
-        local txt = btn:FindFirstChild("BtnText")
-        if txt then txt.Text = "车辆加速 (开)" end
-        btn.BackgroundColor3 = Color3.fromRGB(200, 120, 0)
-    end
-end
-local function disableCarBoost()
-    carboostEnabled = false
-    if carboostConn then carboostConn:Disconnect() end
-    local btn = buttonRefs["carboost"]
-    if btn then
-        local txt = btn:FindFirstChild("BtnText")
-        if txt then txt.Text = "车辆加速" end
-        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    end
-end
-
--- 快速互动
-local instantActionEnabled = false
-local function enableInstantAction()
-    if instantActionEnabled then return end
-    instantActionEnabled = true
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("ProximityPrompt") then
-            obj.HoldDuration = 0.1
-            obj:GetPropertyChangedSignal("HoldDuration"):Connect(function()
-                if instantActionEnabled then obj.HoldDuration = 0.1 end
-            end)
-        end
-    end
-    workspace.DescendantAdded:Connect(function(obj)
-        if instantActionEnabled and obj:IsA("ProximityPrompt") then obj.HoldDuration = 0.1 end
-    end)
-    task.spawn(function()
-        while instantActionEnabled do
-            for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
-                if gui:IsA("ScreenGui") then
-                    for _, obj in ipairs(gui:GetDescendants()) do
-                        if (obj.Name == "ProgressBar" or obj.Name == "Fill") and obj:IsA("Frame") then
-                            obj.Size = UDim2.new(1, 0, 1, 0)
-                        end
-                    end
-                end
-            end
-            task.wait(0.1)
-        end
-    end)
-    local btn = buttonRefs["instantaction"]
-    if btn then
-        local txt = btn:FindFirstChild("BtnText")
-        if txt then txt.Text = "快速互动 (开)" end
-        btn.BackgroundColor3 = Color3.fromRGB(0, 180, 160)
-    end
-end
-local function disableInstantAction()
-    instantActionEnabled = false
-    local btn = buttonRefs["instantaction"]
-    if btn then
-        local txt = btn:FindFirstChild("BtnText")
-        if txt then txt.Text = "快速互动" end
-        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    end
-end
-
--- ========== 关闭时禁用所有功能 ==========
-local function disableAllFeatures()
-    -- 飞行
-    if flyEnabled then
-        disableFly()
-        local btn = buttonRefs["fly"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "启用飞行" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 旋转
-    if spinEnabled then
-        spinEnabled = false
-        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then hum.AutoRotate = true end
-        if hrp then
-            local bav = hrp:FindFirstChild("SpinVelocity")
-            if bav then bav:Destroy() end
-        end
-        local btn = buttonRefs["spin"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "旋转脚本" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 环绕
-    if orbitEnabled then
-        stopOrbit()
-    end
-
-    -- 无头
-    if headlessEnabled then
-        headlessEnabled = false
-        local char = LocalPlayer.Character
-        if char then
-            local head = char:FindFirstChild("Head")
-            if head then
-                head.Transparency = 0
-                for _, v in ipairs(head:GetChildren()) do
-                    if v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 0 end
-                end
-            end
-            local neck = char:FindFirstChild("Neck", true)
-            if neck and neck:IsA("Motor6D") then
-                neck.Transform = CFrame.new(0, 0, 0)
-            end
-        end
-        local btn = buttonRefs["headless"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "无头效果" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 燃烧
-    if fireEnabled then
-        fireEnabled = false
-        if fireObj then fireObj:Destroy(); fireObj = nil end
-        local char = LocalPlayer.Character
-        if char then
-            for _, p in ipairs(char:GetDescendants()) do
-                if p.Name == "ScriptFire" and p:IsA("Fire") then p:Destroy() end
-            end
-        end
-        local btn = buttonRefs["fire"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "燃烧效果" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 烟雾
-    if smokeEnabled then
-        smokeEnabled = false
-        local char = LocalPlayer.Character
-        if char then
-            for _, p in ipairs(char:GetDescendants()) do
-                if p.Name == "ScriptSmoke" and p:IsA("Smoke") then p:Destroy() end
-            end
-        end
-        local btn = buttonRefs["smoke"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "烟雾效果" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 加速
-    if speedEnabled then
-        speedEnabled = false
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then hum.WalkSpeed = 16 end
-        local btn = buttonRefs["speed"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "加速脚本" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 跳跃
-    if jumpEnabled then
-        jumpEnabled = false
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then
-            hum.JumpPower = 50
-            hum.UseJumpPower = false
-        end
-        local btn = buttonRefs["jump"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "跳跃增强" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 穿墙
-    if noclipEnabled then
-        noclipEnabled = false
-        stopNoclip()
-        local btn = buttonRefs["noclip"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "穿墙脚本" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- ESP
-    if espEnabled then
-        espEnabled = false
-        clearESP()
-        local btn = buttonRefs["esp"]
-        if btn then
-            local txt = btn:FindFirstChild("BtnText")
-            if txt then txt.Text = "ESP透视" end
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        end
-    end
-
-    -- 车辆加速
-    if carboostEnabled then
-        disableCarBoost()
-    end
-
-    -- 快速互动
-    if instantActionEnabled then
-        disableInstantAction()
-    end
-
-    -- 恢复相机FOV
-    Camera.FieldOfView = 70
-
-    -- 恢复重力
-    workspace.Gravity = 196.2
-
-    -- 关闭数据修改器窗口
-    if dataWindow then
-        dataWindow.Visible = false
-    end
-
-    -- 关闭服务器脚本窗口
-    if ServerScriptsWindow then
-        ServerScriptsWindow.Visible = false
-    end
-
-    -- 关闭玩家选择窗口
-    if PlayerSelectFrame then
-        PlayerSelectFrame.Visible = false
-    end
-end
-
--- 数据修改器
-local dataWindow = nil
-local function createDataWindow()
-    if dataWindow then return end
-    dataWindow = new("Frame", ScreenGui, {
-        Size = UDim2.new(0, 280, 0, 240),
-        Position = UDim2.new(0.5, -140, 0.5, -120),
-        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-        BorderSizePixel = 0,
-        Active = true,
-        Draggable = true,
-        Visible = false,
-        ZIndex = 60
-    })
-    corner(dataWindow, 10)
-
-    local dwTitle = new("TextLabel", dataWindow, {
-        Size = UDim2.new(1, -30, 0, 28),
-        Position = UDim2.new(0, 15, 0, 6),
-        BackgroundTransparency = 1,
-        Text = "数据修改器",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 17,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        ZIndex = 61
-    })
-
-    local dwClose = new("TextButton", dataWindow, {
-        Size = UDim2.new(0, 24, 0, 24),
-        Position = UDim2.new(1, -28, 0, 6),
-        BackgroundColor3 = Color3.fromRGB(255, 70, 70),
-        Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 12,
-        Font = Enum.Font.GothamBold,
-        BorderSizePixel = 0,
-        ZIndex = 61
-    })
-    corner(dwClose, 5)
-    dwClose.MouseButton1Click:Connect(function() dataWindow.Visible = false end)
-
-    local dataScroll = new("ScrollingFrame", dataWindow, {
-        Size = UDim2.new(1, -10, 1, -40),
-        Position = UDim2.new(0, 5, 0, 32),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 52),
-        BorderSizePixel = 0,
-        ScrollBarThickness = 3,
-        CanvasSize = UDim2.new(0, 0, 0, 400),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ZIndex = 61
-    })
-
-    local dataLayout = new("UIListLayout", dataScroll, { Padding = UDim.new(0, 5), ZIndex = 61 })
-
-    local function addDataRow(parent, labelText, currentValue, applyFunc)
-        local row = new("Frame", parent, { Size = UDim2.new(1, -8, 0, 34), BackgroundTransparency = 1, ZIndex = 61 })
-        local label = new("TextLabel", row, {
-            Size = UDim2.new(0, 75, 1, 0),
-            BackgroundTransparency = 1,
-            Text = labelText,
-            TextColor3 = Color3.fromRGB(200, 200, 200),
-            TextSize = 12,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 61
-        })
-        local textBox = new("TextBox", row, {
-            Size = UDim2.new(1, -115, 1, -4),
-            Position = UDim2.new(0, 80, 0, 2),
-            Text = tostring(currentValue),
-            TextColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-            Font = Enum.Font.Gotham,
-            TextSize = 12,
-            BorderSizePixel = 0,
-            ZIndex = 61
-        })
-        corner(textBox, 4)
-        local applyBtn = new("TextButton", row, {
-            Size = UDim2.new(0, 30, 1, -4),
-            Position = UDim2.new(1, -30, 0, 2),
-            BackgroundColor3 = Color3.fromRGB(0, 162, 255),
-            Text = "OK",
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            Font = Enum.Font.GothamBold,
-            TextSize = 11,
-            BorderSizePixel = 0,
-            ZIndex = 61
-        })
-        corner(applyBtn, 3)
-        applyBtn.MouseButton1Click:Connect(function() applyFunc(textBox.Text) end)
-        return textBox
-    end
-
-    local textBoxes = {}
-    local function refreshData()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChild("Humanoid")
-        if not hum then return end
-        if textBoxes.walk then textBoxes.walk.Text = tostring(hum.WalkSpeed) end
-        if textBoxes.jump then textBoxes.jump.Text = tostring(hum.JumpPower) end
-        if textBoxes.health then textBoxes.health.Text = tostring(hum.Health) end
-        if textBoxes.maxhealth then textBoxes.maxhealth.Text = tostring(hum.MaxHealth) end
-        if textBoxes.gravity then textBoxes.gravity.Text = tostring(workspace.Gravity) end
-    end
-
-    textBoxes.walk = addDataRow(dataScroll, "移动速度", 16, function(val)
-        local num = tonumber(val)
-        if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.WalkSpeed = num
-        end
-    end)
-    textBoxes.jump = addDataRow(dataScroll, "跳跃力", 50, function(val)
-        local num = tonumber(val)
-        if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.JumpPower = num
-            LocalPlayer.Character.Humanoid.UseJumpPower = true
-        end
-    end)
-    textBoxes.health = addDataRow(dataScroll, "生命值", 100, function(val)
-        local num = tonumber(val)
-        if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.Health = math.max(num, 0.1)
-        end
-    end)
-    textBoxes.maxhealth = addDataRow(dataScroll, "最大生命", 100, function(val)
-        local num = tonumber(val)
-        if num and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.MaxHealth = num
-        end
-    end)
-    textBoxes.gravity = addDataRow(dataScroll, "重力", 196.2, function(val)
-        local num = tonumber(val)
-        if num then workspace.Gravity = num end
-    end)
-
-    local refreshBtn = new("TextButton", dataScroll, {
-        Size = UDim2.new(1, -8, 0, 28),
-        Text = "刷新数据",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        BorderSizePixel = 0,
-        ZIndex = 61
-    })
-    corner(refreshBtn, 4)
-    refreshBtn.MouseButton1Click:Connect(refreshData)
-end
-
--- ========== 按钮事件绑定 ==========
-local function setBtnText(id, text)
-    local btn = buttonRefs[id]
-    if btn then
-        local txt = btn:FindFirstChild("BtnText")
-        if txt then txt.Text = text end
-    end
-end
-
-local flyBtn = buttonRefs["fly"]
-if flyBtn then
-    flyBtn.MouseButton1Click:Connect(function()
-        if flyEnabled then
-            disableFly()
-            setBtnText("fly", "启用飞行")
-            flyBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        else
-            enableFly()
-            flyLoop()
-            setBtnText("fly", "飞行中...")
-            flyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-        end
-    end)
-end
-
-local spinBtn = buttonRefs["spin"]
-if spinBtn then
-    spinBtn.MouseButton1Click:Connect(function()
-        toggleSpin()
-        setBtnText("spin", spinEnabled and "旋转中..." or "旋转脚本")
-        spinBtn.BackgroundColor3 = spinEnabled and Color3.fromRGB(200, 80, 40) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local orbitBtn = buttonRefs["orbit"]
-if orbitBtn then
-    orbitBtn.MouseButton1Click:Connect(function()
-        if orbitEnabled then
-            stopOrbit()
-        else
-            refreshPlayerList()
-            PlayerSelectFrame.Visible = true
-        end
-    end)
-end
-
-local headlessBtn = buttonRefs["headless"]
-if headlessBtn then
-    headlessBtn.MouseButton1Click:Connect(function()
-        toggleHeadless()
-        setBtnText("headless", headlessEnabled and "无头中..." or "无头效果")
-        headlessBtn.BackgroundColor3 = headlessEnabled and Color3.fromRGB(80, 80, 80) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local fireBtn = buttonRefs["fire"]
-if fireBtn then
-    fireBtn.MouseButton1Click:Connect(function()
-        toggleFire()
-        setBtnText("fire", fireEnabled and "燃烧中..." or "燃烧效果")
-        fireBtn.BackgroundColor3 = fireEnabled and Color3.fromRGB(200, 40, 0) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local smokeBtn = buttonRefs["smoke"]
-if smokeBtn then
-    smokeBtn.MouseButton1Click:Connect(function()
-        toggleSmoke()
-        setBtnText("smoke", smokeEnabled and "冒烟中..." or "烟雾效果")
-        smokeBtn.BackgroundColor3 = smokeEnabled and Color3.fromRGB(120, 120, 120) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local speedBtn = buttonRefs["speed"]
-if speedBtn then
-    speedBtn.MouseButton1Click:Connect(function()
-        toggleSpeed()
-        setBtnText("speed", speedEnabled and "加速中..." or "加速脚本")
-        speedBtn.BackgroundColor3 = speedEnabled and Color3.fromRGB(200, 170, 0) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local jumpBtn = buttonRefs["jump"]
-if jumpBtn then
-    jumpBtn.MouseButton1Click:Connect(function()
-        toggleJump()
-        setBtnText("jump", jumpEnabled and "超级跳..." or "跳跃增强")
-        jumpBtn.BackgroundColor3 = jumpEnabled and Color3.fromRGB(40, 200, 80) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local noclipBtn = buttonRefs["noclip"]
-if noclipBtn then
-    noclipBtn.MouseButton1Click:Connect(function()
-        toggleNoclip()
-        setBtnText("noclip", noclipEnabled and "穿墙中..." or "穿墙脚本")
-        noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(140, 80, 40) or Color3.fromRGB(50, 50, 60)
-    end)
-end
-
-local espBtn = buttonRefs["esp"]
-if espBtn then
-    espBtn.MouseButton1Click:Connect(function()
-        if espEnabled then
-            espEnabled = false
-            clearESP()
-            setBtnText("esp", "ESP透视")
-            espBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        else
-            espEnabled = true
-            createESP()
-            setBtnText("esp", "ESP中...")
-            espBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 80)
-        end
-    end)
-end
-
-local carboostBtn = buttonRefs["carboost"]
-if carboostBtn then
-    carboostBtn.MouseButton1Click:Connect(function()
-        if carboostEnabled then disableCarBoost() else enableCarBoost() end
-    end)
-end
-
-local instantBtn = buttonRefs["instantaction"]
-if instantBtn then
-    instantBtn.MouseButton1Click:Connect(function()
-        if instantActionEnabled then disableInstantAction() else enableInstantAction() end
-    end)
-end
-
-if datamodBtn then
-    datamodBtn.MouseButton1Click:Connect(function()
-        if not isVIP then
-            pcall(function()
-                game:GetService("StarterGui"):SetCore("SendNotification", {Title = "权限不足", Text = "请升级到VIP", Duration = 3})
-            end)
-            return
-        end
-        if not dataWindow then createDataWindow() end
-        dataWindow.Visible = not dataWindow.Visible
-    end)
-end
-
-local permanentBtn = buttonRefs["permanent"]
-if permanentBtn then
-    permanentBtn.MouseButton1Click:Connect(function()
-        if writefile then
-            pcall(function() writefile("FScriptHub_Permanent.dat", "1") end)
-        else
-            Instance.new("BoolValue", CoreGui).Name = "FScriptHubPermanent"
-        end
-    end)
-end
-
-local unpermanentBtn = buttonRefs["unpermanent"]
-if unpermanentBtn then
-    unpermanentBtn.MouseButton1Click:Connect(function()
-        if writefile then pcall(function() delfile("FScriptHub_Permanent.dat") end) end
-        local m = CoreGui:FindFirstChild("FScriptHubPermanent")
-        if m then m:Destroy() end
-    end)
-end
-
-local teleportBtn = buttonRefs["teleport"]
-if teleportBtn then
-    teleportBtn.MouseButton1Click:Connect(function()
-        refreshPlayerList()
-        PlayerSelectFrame.Visible = true
-        for _, b in ipairs(PlayerScroll:GetChildren()) do
-            if b:IsA("TextButton") then
-                b.MouseButton1Click:Connect(function()
-                    local p = Players:FindFirstChild(b.Text)
-                    if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        local c = LocalPlayer.Character
-                        if c and c:FindFirstChild("HumanoidRootPart") then
-                            c:SetPrimaryPartCFrame(p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3))
-                            PlayerSelectFrame.Visible = false
-                        end
-                    end
-                end)
-            end
-        end
-    end)
-end
-
-local marks = {}
-local markpointBtn = buttonRefs["markpoint"]
-if markpointBtn then
-    markpointBtn.MouseButton1Click:Connect(function()
-        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then marks[#marks+1] = hrp.CFrame end
-    end)
-end
-
-local marklistBtn = buttonRefs["marklist"]
-if marklistBtn then
-    marklistBtn.MouseButton1Click:Connect(function()
-        if #marks > 0 then
-            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.CFrame = marks[#marks]
-                table.remove(marks, #marks)
-            end
-        end
-    end)
-end
-
-local admintoolBtn = buttonRefs["admintool"]
-if admintoolBtn then
-    admintoolBtn.MouseButton1Click:Connect(function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-        end)
-    end)
-end
-
--- 服务器脚本弹窗
-local ServerScriptsWindow = nil
-local function createServerScriptsWindow()
-    if ServerScriptsWindow then return end
-    ServerScriptsWindow = new("Frame", ScreenGui, {
-        Name = "ServerScriptsWindow",
-        Size = UDim2.new(0, 300, 0, 380),
-        Position = UDim2.new(0.5, -150, 0.5, -190),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 35),
-        BorderSizePixel = 0,
-        Active = true,
-        Draggable = true,
-        Visible = false,
-        ZIndex = 70
-    })
-    corner(ServerScriptsWindow, 12)
-
-    local ssTitle = new("TextLabel", ServerScriptsWindow, {
-        Size = UDim2.new(1, 0, 0, 35),
-        Position = UDim2.new(0, 0, 0, 5),
-        BackgroundTransparency = 1,
-        Text = "服务器脚本",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 71
-    })
-
-    local ssClose = new("TextButton", ServerScriptsWindow, {
-        Size = UDim2.new(0, 28, 0, 28),
-        Position = UDim2.new(1, -33, 0, 6),
-        BackgroundColor3 = Color3.fromRGB(255, 70, 70),
-        Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        BorderSizePixel = 0,
-        ZIndex = 71
-    })
-    corner(ssClose, 6)
-    ssClose.MouseButton1Click:Connect(function() ServerScriptsWindow.Visible = false end)
-
-    local ssScroll = new("ScrollingFrame", ServerScriptsWindow, {
-        Size = UDim2.new(1, -12, 1, -50),
-        Position = UDim2.new(0, 6, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 48),
-        BorderSizePixel = 0,
-        ScrollBarThickness = 4,
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ZIndex = 71
-    })
-    corner(ssScroll, 8)
-
-    local ssLayout = new("UIListLayout", ssScroll, {
-        Padding = UDim.new(0, 5),
-        ZIndex = 71
-    })
-
-    -- 脚本列表定义
-    local BASE_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/"
-    local scriptList = {
-        {name = "自然灾害", icon = "🌪", color = Color3.fromRGB(255, 100, 50), file = "ziran.lua"},
-        {name = "8个球池经典", icon = "🎱", color = Color3.fromRGB(0, 162, 255), file = "scripts/8个球池经典.lua"},
-        {name = "99夜", icon = "🌙", color = Color3.fromRGB(100, 50, 200), file = "scripts/99夜.lua"},
-        {name = "保护房子不受怪物入侵", icon = "🏠", color = Color3.fromRGB(255, 200, 0), file = "scripts/保护房子不受怪物入侵.lua"},
-        {name = "餐厅大亨3", icon = "🍽", color = Color3.fromRGB(255, 150, 50), file = "scripts/餐厅大亨3.lua"},
-        {name = "超高速跑者", icon = "🏃", color = Color3.fromRGB(0, 255, 150), file = "scripts/超高速跑者.lua"},
-        {name = "超真实CSGO", icon = "🔫", color = Color3.fromRGB(200, 50, 50), file = "scripts/超真实csgo.lua"},
-        {name = "沉默的刺客", icon = "🗡", color = Color3.fromRGB(80, 80, 80), file = "scripts/沉默的刺客.lua"},
-        {name = "刀刃球", icon = "⚔", color = Color3.fromRGB(255, 80, 80), file = "scripts/刀刃球.lua"},
-        {name = "钓鱼模拟器", icon = "🎣", color = Color3.fromRGB(0, 200, 255), file = "scripts/钓鱼模拟器.lua"},
-        {name = "犯罪", icon = "🔫", color = Color3.fromRGB(255, 50, 0), file = "scripts/犯罪.lua"},
-        {name = "防御", icon = "🛡", color = Color3.fromRGB(50, 150, 255), file = "scripts/防御.lua"},
-        {name = "花园地平线", icon = "🌸", color = Color3.fromRGB(255, 150, 200), file = "scripts/花园地平线.lua"},
-        {name = "滑石头RNG", icon = "🪨", color = Color3.fromRGB(180, 130, 80), file = "scripts/滑石头RNG.lua"},
-        -- 第二批脚本
-        {name = "po大po", icon = "🎯", color = Color3.fromRGB(255, 80, 150), file = "scripts/po大po.lua"},
-        {name = "划开大海", icon = "🌊", color = Color3.fromRGB(0, 150, 255), file = "scripts/划开大海.lua"},
-        {name = "画我", icon = "🎨", color = Color3.fromRGB(255, 180, 0), file = "scripts/画我.lua"},
-        {name = "火箭发射模拟器", icon = "🚀", color = Color3.fromRGB(255, 80, 0), file = "scripts/火箭发射模拟器.lua"},
-        {name = "火球训练", icon = "🔥", color = Color3.fromRGB(255, 100, 0), file = "scripts/火球训练.lua"},
-        {name = "极速传奇", icon = "⚡", color = Color3.fromRGB(255, 220, 0), file = "scripts/极速传奇.lua"},
-        {name = "集装箱RNG", icon = "📦", color = Color3.fromRGB(150, 100, 50), file = "scripts/集装箱RNG.lua"},
-        {name = "监狱泵", icon = "⛓", color = Color3.fromRGB(100, 100, 100), file = "scripts/监狱泵.lua"},
-        {name = "僵尸生存竞技场", icon = "🧟", color = Color3.fromRGB(100, 180, 50), file = "scripts/僵尸生存竞技场.lua"},
-        {name = "僵尸之塔", icon = "🏰", color = Color3.fromRGB(120, 80, 60), file = "scripts/僵尸之塔.lua"},
-        {name = "戒网瘾中心", icon = "📵", color = Color3.fromRGB(200, 50, 50), file = "scripts/戒网瘾中心.lua"},
-        {name = "金币点击器", icon = "🪙", color = Color3.fromRGB(255, 215, 0), file = "scripts/金币点击器.lua"},
-        {name = "竞争对手", icon = "🏆", color = Color3.fromRGB(255, 150, 0), file = "scripts/竞争对手.lua"},
-        {name = "举重模拟器", icon = "🏋️", color = Color3.fromRGB(150, 80, 50), file = "scripts/举重模拟器.lua"},
-        {name = "决斗场", icon = "⚔", color = Color3.fromRGB(180, 50, 50), file = "scripts/决斗场.lua"},
-        {name = "砍伐树木", icon = "🪓", color = Color3.fromRGB(100, 180, 80), file = "scripts/砍伐树木.lua"},
-        {name = "克隆王国大亨", icon = "👑", color = Color3.fromRGB(180, 150, 50), file = "scripts/克隆王国大亨.lua"},
-        {name = "矿井", icon = "⛏", color = Color3.fromRGB(100, 80, 60), file = "scripts/矿井.lua"},
-        {name = "力量传奇", icon = "💪", color = Color3.fromRGB(255, 100, 50), file = "scripts/力量传奇.lua"},
-        {name = "每步+1智商", icon = "🧠", color = Color3.fromRGB(150, 100, 255), file = "scripts/每步+1智商.lua"},
-        {name = "迷你帝国", icon = "🏛", color = Color3.fromRGB(200, 180, 100), file = "scripts/迷你帝国.lua"},
-        {name = "模仿者", icon = "🎭", color = Color3.fromRGB(150, 100, 200), file = "scripts/模仿者.lua"},
-        {name = "木筏101天生存", icon = "🛶", color = Color3.fromRGB(100, 150, 200), file = "scripts/木筏101天生存.lua"},
-        {name = "强壮传奇", icon = "🦾", color = Color3.fromRGB(200, 100, 50), file = "scripts/强壮传奇.lua"},
-        {name = "南极洲探险", icon = "🐧", color = Color3.fromRGB(100, 150, 255), file = "scripts/南极洲探险.lua"},
-        {name = "奴才大亨", icon = "🤵", color = Color3.fromRGB(150, 100, 80), file = "scripts/奴才大亨.lua"},
-        {name = "平滑切片", icon = "🔪", color = Color3.fromRGB(200, 200, 200), file = "scripts/平滑切片.lua"},
-        {name = "破坏者谜团2", icon = "💣", color = Color3.fromRGB(255, 80, 80), file = "scripts/破坏者谜团2.lua"},
-        {name = "启示录", icon = "📖", color = Color3.fromRGB(180, 150, 100), file = "scripts/启示录.lua"},
-        {name = "汽车经销商大亨", icon = "🚗", color = Color3.fromRGB(0, 150, 255), file = "scripts/汽车经销商大亨.lua"},
-        {name = "忍者传奇", icon = "🥷", color = Color3.fromRGB(80, 80, 80), file = "scripts/忍者传奇.lua"},
-        {name = "鲨鱼咬", icon = "🦈", color = Color3.fromRGB(0, 100, 180), file = "scripts/鲨鱼咬.lua"},
-        {name = "闪光", icon = "✨", color = Color3.fromRGB(255, 255, 100), file = "scripts/闪光.lua"},
-        {name = "生存于杀手", icon = "🔪", color = Color3.fromRGB(200, 50, 50), file = "scripts/生存于杀手.lua"},
-        {name = "手枪竞技场", icon = "🔫", color = Color3.fromRGB(150, 100, 50), file = "scripts/手枪竞技场.lua"},
-        {name = "亡命速递", icon = "🏍", color = Color3.fromRGB(200, 100, 0), file = "scripts/亡命速递.lua"},
-        {name = "最强战场", icon = "💥", color = Color3.fromRGB(255, 50, 50), file = "scripts/最强战场.lua"},
-        {name = "GB", icon = "🇬🇧", color = Color3.fromRGB(100, 100, 255), file = "scripts/GB.lua"},
-        {name = "造船寻宝", icon = "⚓", color = Color3.fromRGB(100, 150, 200), file = "scripts/造船寻宝.lua"},
-    }
-
-    -- 按钮悬停效果
-    local function addHoverEffect(btn)
-        local originalColor = btn.BackgroundColor3
-        btn.MouseEnter:Connect(function()
-            tween(btn, 0.2, {BackgroundColor3 = Color3.fromRGB(70, 70, 85)})
-        end)
-        btn.MouseLeave:Connect(function()
-            tween(btn, 0.2, {BackgroundColor3 = originalColor})
-        end)
-    end
-
-    -- 创建每个脚本按钮
-    for _, scriptInfo in ipairs(scriptList) do
-        local sBtn = new("TextButton", ssScroll, {
-            Size = UDim2.new(1, -10, 0, 38),
-            BackgroundColor3 = Color3.fromRGB(55, 55, 65),
-            Text = "",
-            BorderSizePixel = 0,
-            ZIndex = 72
-        })
-        corner(sBtn, 8)
-
-        local sIcon = new("TextLabel", sBtn, {
-            Size = UDim2.new(0, 26, 0, 26),
-            Position = UDim2.new(0, 7, 0, 6),
-            BackgroundTransparency = 1,
-            Text = scriptInfo.icon,
-            TextSize = 16,
-            Font = Enum.Font.GothamBold,
-            ZIndex = 73
-        })
-
-        local sText = new("TextLabel", sBtn, {
-            Size = UDim2.new(1, -42, 1, 0),
-            Position = UDim2.new(0, 34, 0, 0),
-            BackgroundTransparency = 1,
-            Text = scriptInfo.name,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 12,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 73
-        })
-
-        local sColor = new("Frame", sBtn, {
-            Size = UDim2.new(0, 3, 0.6, 0),
-            Position = UDim2.new(1, -6, 0.2, 0),
-            BackgroundColor3 = scriptInfo.color,
-            BorderSizePixel = 0,
-            ZIndex = 73
-        })
-        corner(sColor, 2)
-
-        addHoverEffect(sBtn)
-
-        sBtn.MouseButton1Click:Connect(function()
-            pcall(function()
-                loadstring(game:HttpGet(BASE_URL .. scriptInfo.file))()
-            end)
-            -- 清理其他脚本的FPS显示
-            task.delay(2, function()
-                pcall(function()
-                    for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
-                        if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
-                            for _, obj in ipairs(gui:GetDescendants()) do
-                                if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
-                                    obj:Destroy()
-                                end
-                            end
-                        end
-                    end
-                end)
-                pcall(function()
-                    for _, gui in ipairs(CoreGui:GetChildren()) do
-                        if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
-                            for _, obj in ipairs(gui:GetDescendants()) do
-                                if obj:IsA("TextLabel") and (obj.Name:lower():match("fps") or obj.Text:lower():match("fps")) then
-                                    obj:Destroy()
-                                end
-                            end
-                        end
-                    end
-                end)
-            end)
-            ServerScriptsWindow.Visible = false
-            pcall(function()
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "服务器脚本",
-                    Text = scriptInfo.name .. " 已加载",
-                    Duration = 3
-                })
-            end)
-        end)
-    end
-end
-
-local serverscriptsBtn = buttonRefs["serverscripts"]
-if serverscriptsBtn then
-    serverscriptsBtn.MouseButton1Click:Connect(function()
-        if not ServerScriptsWindow then createServerScriptsWindow() end
-        ServerScriptsWindow.Visible = not ServerScriptsWindow.Visible
-    end)
-end
-
-local ratio43Btn = buttonRefs["ratio43"]
-if ratio43Btn then
-    ratio43Btn.MouseButton1Click:Connect(function()
-        Camera.FieldOfView = Camera.FieldOfView == 60 and 70 or 60
-        setBtnText("ratio43", Camera.FieldOfView == 60 and "4:3比例 (开)" or "4:3比例")
-    end)
-end
-
-local ultrawideBtn = buttonRefs["ultrawide"]
-if ultrawideBtn then
-    ultrawideBtn.MouseButton1Click:Connect(function()
-        Camera.FieldOfView = Camera.FieldOfView == 100 and 70 or 100
-        setBtnText("ultrawide", Camera.FieldOfView == 100 and "超广角 (开)" or "超广角")
-    end)
-end
-
-local switchroleBtn = buttonRefs["switchrole"]
-if switchroleBtn then
-    switchroleBtn.MouseButton1Click:Connect(function()
-        local selectFrame = new("Frame", ScreenGui, {
-            Size = UDim2.new(0, 180, 0, 120),
-            Position = UDim2.new(0.5, -90, 0.5, -60),
-            BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-            BorderSizePixel = 0,
-            Active = true,
-            Draggable = true,
-            ZIndex = 55
-        })
-        corner(selectFrame, 8)
-
-        local lbl = new("TextLabel", selectFrame, {
-            Size = UDim2.new(1, 0, 0, 25),
-            Position = UDim2.new(0, 0, 0, 5),
-            BackgroundTransparency = 1,
-            Text = "选择身份",
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 15,
-            Font = Enum.Font.GothamBold,
-            ZIndex = 56
-        })
-
-        local options = {
-            {name = "作者", role = "author", col = Color3.fromRGB(255, 215, 0)},
-            {name = "VIP", role = "vip", col = Color3.fromRGB(0, 255, 150)},
-            {name = "普通用户", role = "normal", col = Color3.fromRGB(200, 200, 200)},
-        }
-
-        for i, opt in ipairs(options) do
-            local optBtn = new("TextButton", selectFrame, {
-                Size = UDim2.new(1, -20, 0, 26),
-                Position = UDim2.new(0, 10, 0, 32 + (i-1) * 28),
-                BackgroundColor3 = opt.col,
-                Text = opt.name,
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 13,
-                Font = Enum.Font.GothamBold,
-                BorderSizePixel = 0,
-                ZIndex = 56
-            })
-            corner(optBtn, 4)
-            optBtn.MouseButton1Click:Connect(function()
-                currentRole = opt.role
-                isAuthor = currentRole == "author"
-                isVIP = currentRole == "author" or currentRole == "vip"
-                RoleLabel.Text = opt.name
-                RoleLabel.TextColor3 = opt.col
-                if datamodBtn then
-                    if isVIP then
-                        setBtnText("datamod", "数据修改器")
-                        datamodBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-                    else
-                        setBtnText("datamod", "数据修改器 (VIP)")
-                        datamodBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-                    end
-                end
-                selectFrame:Destroy()
-                pcall(function()
-                    game:GetService("StarterGui"):SetCore("SendNotification", {
-                        Title = "身份切换",
-                        Text = "已切换为 " .. opt.name,
-                        Duration = 3
-                    })
-                end)
-            end)
-        end
-    end)
-end
-
-local sponsorBtn = buttonRefs["sponsor"]
-if sponsorBtn then
-    sponsorBtn.MouseButton1Click:Connect(function()
-        pcall(function() setclipboard(IMAGE_URL) end)
-    end)
-end
-
--- ========== 重生恢复 ==========
-LocalPlayer.CharacterAdded:Connect(function(char)
-    task.wait(1)
-    if flyEnabled then disableFly(); task.wait(0.5); enableFly(); flyLoop() end
-    if spinEnabled then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local bav = Instance.new("BodyAngularVelocity", hrp)
-            bav.Name = "SpinVelocity"
-            bav.AngularVelocity = Vector3.new(0, spinSpeed, 0)
-            bav.MaxTorque = Vector3.new(0, 9e9, 0)
-        end
-    end
-    if noclipEnabled then stopNoclip(); task.wait(0.5); startNoclip() end
-    if espEnabled then task.wait(1); createESP() end
-end)
-
--- ========== FPS显示 ==========
-local fpsLabel = nil
-local function createFPSDisplay()
-    fpsLabel = new("TextLabel", ScreenGui, {
-        Name = "FPSLabel",
-        Size = UDim2.new(0, 80, 0, 22),
-        Position = UDim2.new(1, -90, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(25, 25, 30),
-        BackgroundTransparency = 0.3,
-        Text = "FPS: 60",
-        TextColor3 = Color3.fromRGB(0, 255, 100),
-        TextSize = 12,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 200
-    })
-    corner(fpsLabel, 6)
-
-    local fpsStroke = new("UIStroke", fpsLabel, {
-        Thickness = 1,
-        Transparency = 0.5,
-        Color = Color3.fromRGB(0, 255, 100)
-    })
-
-    local lastTime = tick()
-    local frameCount = 0
-
-    RunService.RenderStepped:Connect(function()
-        frameCount = frameCount + 1
-        local currentTime = tick()
-        if currentTime - lastTime >= 1 then
-            local fps = math.floor(frameCount / (currentTime - lastTime))
-            frameCount = 0
-            lastTime = currentTime
-            if fpsLabel and fpsLabel.Parent then
-                fpsLabel.Text = "FPS: " .. fps
-                if fps >= 55 then
-                    fpsLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
-                    fpsStroke.Color = Color3.fromRGB(0, 255, 100)
-                elseif fps >= 30 then
-                    fpsLabel.TextColor3 = Color3.fromRGB(255, 220, 0)
-                    fpsStroke.Color = Color3.fromRGB(255, 220, 0)
-                else
-                    fpsLabel.TextColor3 = Color3.fromRGB(255, 70, 70)
-                    fpsStroke.Color = Color3.fromRGB(255, 70, 70)
-                end
-            end
-        end
-    end)
-end
-createFPSDisplay()
-
--- ========== 解除帧率限制 ==========
-local fpsUnlocked = false
-local function unlockFPS()
-    fpsUnlocked = true
-    pcall(function()
-        setfpscap(999)
-    end)
-    pcall(function()
-        if settings then
-            settings().Rendering.FrameRateManager = 999
-        end
-    end)
-end
-
--- 自动解除帧率限制
-unlockFPS()
-
--- ========== 完成通知 ==========
+-- 通知
 pcall(function()
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "F脚本中心",
-        Text = "v5.1 已加载 | FPS已解锁",
-        Duration = 4
+        Title = "F脚本中心", Text = "v6.0 模块化版已加载 | 共 " .. #btnDefs .. " 个功能", Duration = 4
     })
 end)
