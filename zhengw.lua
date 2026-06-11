@@ -757,6 +757,26 @@ end});
 ToolsTab:AddToggle({Label="聊天重发",Default=false,Callback=function(v)
 	data['basicdata']['releasetools']['chatresend'] = v;
 end});
+ToolsTab:AddTitle("强制发言");
+ToolsTab:AddParagraph({Title="输入消息内容后点击发送",Content="可以发送任意文字到聊天栏，包括被游戏屏蔽的内容"});
+local forceMsg = "";
+ToolsTab:AddInput({Text="消息内容",Placeholder="输入要发送的消息...",Callback=function(value)
+	forceMsg = value;
+end});
+ToolsTab:AddButton({Text="发送消息",Callback=function()
+	if (forceMsg and (#forceMsg > 0)) then
+		local ok, err = pcall(function()
+			ChatControl:chat(forceMsg);
+		end);
+		if ok then
+			ChronixUI:Notify({Title="强制发言",Content="消息已发送",Type="success",Duration=2});
+		else
+			ChronixUI:Notify({Title="发送失败",Content=tostring(err):sub(1, 50),Type="error",Duration=3});
+		end
+	else
+		ChronixUI:Notify({Title="提示",Content="请先输入消息内容",Type="warning",Duration=2});
+	end
+end});
 ToolsTab:AddToggle({Label="聊天偷听",Default=false,Callback=function(v)
 	if v then
 		ChatSpy.enable();
