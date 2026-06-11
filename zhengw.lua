@@ -2170,6 +2170,13 @@ infoTab:AddButton({Text="强制内存垃圾回收",Callback=function()
 	ChronixUI:Notify({Title="提示",Content="已进行垃圾回收\n请不要频繁使用，可能会影响性能。",Type="info",Duration=5});
 end});
 infoTab:AddTitle(">广告位招租<");
+infoTab:AddParagraph({Title="YangZhiKa FeiJiHao",Content="Colorful Gradient Text Advertisement\n\nYangZhiKa FeiJiHao\n\nQQ: 2490035277\n\nContact to purchase advertising space!"});
+infoTab:AddButton({Text="Copy QQ Number",Callback=function()
+	pcall(function()
+		setclipboard("2490035277");
+	end);
+	ChronixUI:Notify({Title="Copied!",Content="QQ number copied to clipboard",Type="success",Duration=2});
+end});
 local settingsContent = mainWindow.SettingsElements;
 if (getfpscap and setfpscap) then
 	settingsContent:AddInput({Label="Roblox - 帧率上限",Placeholder="这里输入你的最大帧率",Default=getfpscap(),Callback=function(text)
