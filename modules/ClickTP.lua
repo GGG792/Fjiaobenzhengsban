@@ -1,37 +1,44 @@
 local ClickTP = {};
+local enabled = false;
+local connection = nil;
 local Players = game:GetService("Players");
 local UserInputService = game:GetService("UserInputService");
 local LocalPlayer = Players.LocalPlayer;
-local clickTPEnabled = false;
-local clickTPConnection = nil;
 ClickTP.toggle = function()
-	clickTPEnabled = not clickTPEnabled;
-	if clickTPEnabled then
-		clickTPConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-			if gameProcessed then
+	enabled = not enabled;
+	if enabled then
+		connection = UserInputService.InputBegan:Connect(function(input, processed)
+			if processed then
 				return;
 			end
-			if ((input.UserInputType == Enum.UserInputType.MouseButton1) and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl)) then
-				local mouse = LocalPlayer:GetMouse();
-				if mouse.Hit then
-					local char = LocalPlayer.Character;
-					if (char and char:FindFirstChild("HumanoidRootPart")) then
-						char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0));
+			if not enabled then
+				return;
+			end
+			if (input.UserInputType == Enum.UserInputType.MouseButton1) then
+				if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+					local mousePos = UserInputService:GetMouseLocation();
+					local ray = workspace.CurrentCamera:ViewportPointToRay(mousePos);
+					local rayResult = workspace:Raycast(ray.Origin, ray.Direction * 1000);
+					if rayResult then
+						local char = LocalPlayer.Character;
+						if (char and char:FindFirstChild("HumanoidRootPart")) then
+							char.HumanoidRootPart.CFrame = CFrame.new(rayResult.Position + Vector3.new(0, 3, 0));
+						end
 					end
 				end
 			end
 		end);
-		return true, "点击传送已开启 (按住Ctrl+点击地面)";
-	else
-		if clickTPConnection then
-			clickTPConnection:Disconnect();
-			clickTPConnection = nil;
-		end
-		return false, "点击传送已关闭";
+	elseif connection then
+		connection:Disconnect();
+		connection = nil;
 	end
+	return enabled;
+end;
+ClickTP.isEnabled = function()
+	return enabled;
 end;
 ClickTP.disable = function()
-	if clickTPEnabled then
+	if enabled then
 		ClickTP.toggle();
 	end
 end;

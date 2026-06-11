@@ -1,30 +1,27 @@
 local InstantAction = {};
 local enabled = false;
-local originalPrompt = nil;
+local connection = nil;
 local Players = game:GetService("Players");
 local LocalPlayer = Players.LocalPlayer;
 InstantAction.toggle = function()
 	enabled = not enabled;
 	if enabled then
-		pcall(function()
-			originalPrompt = game:GetService("ProximityPromptService").PromptButtonHoldBegan;
-			game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+		connection = game:GetService("ProximityPromptService").PromptShown:Connect(function(prompt, _)
+			if enabled then
 				prompt.HoldDuration = 0;
-			end);
+			end
 		end);
 		local char = LocalPlayer.Character;
 		if char then
-			for _, prompt in ipairs(char:GetDescendants()) do
-				if prompt:IsA("ProximityPrompt") then
-					prompt.HoldDuration = 0;
+			for _, obj in ipairs(char:GetDescendants()) do
+				if obj:IsA("ProximityPrompt") then
+					obj.HoldDuration = 0;
 				end
 			end
 		end
-	else
-		pcall(function()
-			if originalPrompt then
-			end
-		end);
+	elseif connection then
+		connection:Disconnect();
+		connection = nil;
 	end
 	return enabled;
 end;

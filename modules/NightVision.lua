@@ -1,73 +1,70 @@
 local NightVision = {};
+local nvEnabled = false;
+local xrEnabled = false;
+local savedLighting = {};
+local partCache = {};
 local Lighting = game:GetService("Lighting");
-local RunService = game:GetService("RunService");
-local nightVisionEnabled = false;
-local xrayEnabled = false;
-local originalSettings = {};
-local xrayConnection = nil;
 NightVision.toggleNightVision = function()
-	nightVisionEnabled = not nightVisionEnabled;
-	if nightVisionEnabled then
-		originalSettings.ClockTime = Lighting.ClockTime;
-		originalSettings.Brightness = Lighting.Brightness;
-		originalSettings.GlobalShadows = Lighting.GlobalShadows;
-		originalSettings.OutdoorAmbient = Lighting.OutdoorAmbient;
-		originalSettings.Ambient = Lighting.Ambient;
+	nvEnabled = not nvEnabled;
+	if nvEnabled then
+		savedLighting.Brightness = Lighting.Brightness;
+		savedLighting.ClockTime = Lighting.ClockTime;
+		savedLighting.FogEnd = Lighting.FogEnd;
+		savedLighting.Ambient = Lighting.Ambient;
+		Lighting.Brightness = 2;
 		Lighting.ClockTime = 14;
-		Lighting.Brightness = 3;
-		Lighting.GlobalShadows = false;
-		Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 200);
-		Lighting.Ambient = Color3.fromRGB(150, 150, 150);
-		return true, "夜视已开启";
+		Lighting.FogEnd = 100000;
+		Lighting.Ambient = Color3.fromRGB(178, 178, 178);
 	else
-		if originalSettings.ClockTime then
-			Lighting.ClockTime = originalSettings.ClockTime;
-			Lighting.Brightness = originalSettings.Brightness;
-			Lighting.GlobalShadows = originalSettings.GlobalShadows;
-			Lighting.OutdoorAmbient = originalSettings.OutdoorAmbient;
-			Lighting.Ambient = originalSettings.Ambient;
+		if savedLighting.Brightness then
+			Lighting.Brightness = savedLighting.Brightness;
 		end
-		return false, "夜视已关闭";
+		if savedLighting.ClockTime then
+			Lighting.ClockTime = savedLighting.ClockTime;
+		end
+		if savedLighting.FogEnd then
+			Lighting.FogEnd = savedLighting.FogEnd;
+		end
+		if savedLighting.Ambient then
+			Lighting.Ambient = savedLighting.Ambient;
+		end
 	end
+	return nvEnabled;
 end;
 NightVision.toggleXRay = function()
-	xrayEnabled = not xrayEnabled;
-	if xrayEnabled then
-		xrayConnection = RunService.RenderStepped:Connect(function()
-			for _, part in ipairs(workspace:GetDescendants()) do
-				if (part:IsA("BasePart") and (part.Transparency < 1)) then
-					if not part:GetAttribute("OriginalTransparency") then
-						part:SetAttribute("OriginalTransparency", part.Transparency);
-					end
-					if (part.Name:lower():match("wall") or part.Name:lower():match("door") or part.Name:lower():match("floor")) then
-						part.Transparency = 0.7;
-					end
-				end
-			end
-		end);
-		return true, "X光已开启";
-	else
-		if xrayConnection then
-			xrayConnection:Disconnect();
-			xrayConnection = nil;
-		end
+	xrEnabled = not xrEnabled;
+	if xrEnabled then
+		partCache = {};
 		for _, part in ipairs(workspace:GetDescendants()) do
-			if part:IsA("BasePart") then
-				local original = part:GetAttribute("OriginalTransparency");
-				if original then
-					part.Transparency = original;
+			if (part:IsA("BasePart") and (part.Name ~= "HumanoidRootPart") and (part.Name ~= "Head")) then
+				if (part.Transparency < 0.5) then
+					partCache[part] = part.Transparency;
+					part.Transparency = 0.5;
 				end
 			end
 		end
-		return false, "X光已关闭";
+	else
+		for part, origTrans in pairs(partCache) do
+			if (part and part.Parent) then
+				part.Transparency = origTrans;
+			end
+		end
+		partCache = {};
+	end
+	return xrEnabled;
+end;
+NightVision.disableNightVision = function()
+	if nvEnabled then
+		NightVision.toggleNightVision();
+	end
+end;
+NightVision.disableXRay = function()
+	if xrEnabled then
+		NightVision.toggleXRay();
 	end
 end;
 NightVision.disableAll = function()
-	if nightVisionEnabled then
-		NightVision.toggleNightVision();
-	end
-	if xrayEnabled then
-		NightVision.toggleXRay();
-	end
+	NightVision.disableNightVision();
+	NightVision.disableXRay();
 end;
 return NightVision;

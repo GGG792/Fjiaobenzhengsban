@@ -1,29 +1,35 @@
 local InfiniteJump = {};
+local enabled = false;
+local connection = nil;
 local Players = game:GetService("Players");
 local UserInputService = game:GetService("UserInputService");
 local LocalPlayer = Players.LocalPlayer;
-local infiniteJumpEnabled = false;
-local jumpConnection = nil;
 InfiniteJump.toggle = function()
-	infiniteJumpEnabled = not infiniteJumpEnabled;
-	if infiniteJumpEnabled then
-		jumpConnection = UserInputService.JumpRequest:Connect(function()
+	enabled = not enabled;
+	if enabled then
+		connection = UserInputService.JumpRequest:Connect(function()
+			if not enabled then
+				return;
+			end
 			local char = LocalPlayer.Character;
-			if (char and char:FindFirstChild("Humanoid")) then
-				char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping);
+			if char then
+				local humanoid = char:FindFirstChildOfClass("Humanoid");
+				if humanoid then
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping);
+				end
 			end
 		end);
-		return true, "无限连跳已开启";
-	else
-		if jumpConnection then
-			jumpConnection:Disconnect();
-			jumpConnection = nil;
-		end
-		return false, "无限连跳已关闭";
+	elseif connection then
+		connection:Disconnect();
+		connection = nil;
 	end
+	return enabled;
+end;
+InfiniteJump.isEnabled = function()
+	return enabled;
 end;
 InfiniteJump.disable = function()
-	if infiniteJumpEnabled then
+	if enabled then
 		InfiniteJump.toggle();
 	end
 end;

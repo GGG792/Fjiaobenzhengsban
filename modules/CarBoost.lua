@@ -1,6 +1,7 @@
 local CarBoost = {};
 local enabled = false;
 local connection = nil;
+local MAX_SPEED = 300;
 local Players = game:GetService("Players");
 local RunService = game:GetService("RunService");
 local LocalPlayer = Players.LocalPlayer;
@@ -26,7 +27,12 @@ CarBoost.toggle = function()
 					local primaryPart = vehicleModel.PrimaryPart or vehicleModel:FindFirstChildWhichIsA("BasePart");
 					if primaryPart then
 						local lookVector = primaryPart.CFrame.LookVector;
-						primaryPart.Velocity = primaryPart.Velocity + (lookVector * 5);
+						local currentVel = primaryPart.AssemblyLinearVelocity;
+						local newVel = currentVel + (lookVector * 5);
+						if (newVel.Magnitude > MAX_SPEED) then
+							newVel = newVel.Unit * MAX_SPEED;
+						end
+						primaryPart.AssemblyLinearVelocity = newVel;
 					end
 				end
 			end
