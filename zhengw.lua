@@ -22,7 +22,7 @@ end)
 
 -- 模块基础URL
 local MODULE_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/modules/"
-local CHRONIX_UI_URL = "https://raw.atomgit.com/Furrycalin/ChronixHub/raw/main/modules/ChronixUI%20Lib.lua"
+local CHRONIX_UI_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/modules/ChronixUI_Lib.lua"
 
 -- 加载 ChronixUI 库
 local ChronixUI = loadstring(game:HttpGet(CHRONIX_UI_URL))()
