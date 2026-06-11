@@ -1,5 +1,5 @@
--- F脚本中心 - UI框架模块
--- 提供基础UI创建工具和动画效果
+-- F脚本中心 - UI框架模块 (ChronixHub 风格 v2)
+-- 深蓝紫主题 + 侧边栏 + 卡片式布局
 local UI = {}
 
 local Players = game:GetService("Players")
@@ -9,12 +9,26 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 
+-- ChronixHub 配色
+local THEME = {
+    Background = Color3.fromRGB(30, 30, 46),
+    Sidebar = Color3.fromRGB(24, 24, 37),
+    Accent = Color3.fromRGB(119, 221, 255),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDark = Color3.fromRGB(170, 170, 170),
+    Border = Color3.fromRGB(44, 44, 62),
+    Card = Color3.fromRGB(37, 37, 53),
+    Hover = Color3.fromRGB(45, 45, 65),
+    Success = Color3.fromRGB(46, 213, 115),
+    Error = Color3.fromRGB(255, 71, 87),
+}
+
 -- 屏幕尺寸计算
 local screenSize = Camera.ViewportSize
-local isMobile = UserInputService.TouchEnabled
-local baseWidth, baseHeight = 600, 480
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local baseWidth, baseHeight = 700, 450
 local scale = math.min(screenSize.X / baseWidth, screenSize.Y / baseHeight, 1.2)
-if isMobile then scale = math.min(scale, 1.0) end
+if isMobile then scale = math.min(scale, 0.85) end
 local frameWidth = math.floor(baseWidth * scale)
 local frameHeight = math.floor(baseHeight * scale)
 
@@ -44,7 +58,7 @@ function UI.tween(obj, duration, props, easing, direction)
     return tw
 end
 
--- 创建主界面
+-- 创建主界面 (ChronixHub 风格)
 function UI.createMainUI()
     local ScreenGui = UI.new("ScreenGui", LocalPlayer.PlayerGui, {
         Name = "FScriptHub",
@@ -52,207 +66,271 @@ function UI.createMainUI()
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     })
 
+    -- 主框架
     local MainFrame = UI.new("Frame", ScreenGui, {
         Name = "MainFrame",
         Size = UDim2.new(0, frameWidth, 0, frameHeight),
         Position = UDim2.new(0.5, -frameWidth/2, 0.5, -frameHeight/2),
-        BackgroundColor3 = Color3.fromRGB(25,25,30),
-        BackgroundTransparency = 0.2,
+        BackgroundColor3 = THEME.Background,
+        BackgroundTransparency = 0,
         BorderSizePixel = 0,
         Active = true,
         Draggable = true,
-        ClipsDescendants = false,
+        ClipsDescendants = true,
         Visible = false
     })
-    UI.corner(MainFrame, 16)
+    UI.corner(MainFrame, 8)
 
-    -- 炫彩边框
-    local MainStroke = UI.new("UIStroke", MainFrame, { Thickness = 3, Transparency = 0.15 })
-    coroutine.wrap(function()
-        while MainStroke and MainStroke.Parent do
-            MainStroke.Color = Color3.fromHSV((tick()*0.4)%1, 1, 1)
-            RunService.RenderStepped:Wait()
-        end
-    end)()
+    -- 边框
+    local MainStroke = UI.new("UIStroke", MainFrame, {
+        Thickness = 1,
+        Transparency = 0.5,
+        Color = THEME.Border
+    })
 
-    -- 标题栏
-    local TitleBar = UI.new("Frame", MainFrame, {
-        Size = UDim2.new(1, 0, 0, 55),
-        BackgroundColor3 = Color3.fromRGB(35,35,45),
-        BackgroundTransparency = 0.3,
+    -- ========== 侧边栏 ==========
+    local sidebarWidth = math.floor(160 * scale)
+    local Sidebar = UI.new("Frame", MainFrame, {
+        Name = "Sidebar",
+        Size = UDim2.new(0, sidebarWidth, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = THEME.Sidebar,
+        BackgroundTransparency = 0,
         BorderSizePixel = 0
     })
-    UI.corner(TitleBar, 16)
 
-    local TitleIcon = UI.new("TextLabel", TitleBar, {
-        Size = UDim2.new(0, 40, 0, 40),
-        Position = UDim2.new(0, 10, 0, 7),
-        BackgroundColor3 = Color3.fromRGB(0,162,255),
-        Text = "F",
-        TextColor3 = Color3.fromRGB(255,255,255),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 22
-    })
-    UI.corner(TitleIcon, 10)
-
-    local TitleText = UI.new("TextLabel", TitleBar, {
-        Size = UDim2.new(0, 200, 0, 25),
-        Position = UDim2.new(0, 58, 0, 6),
+    -- 侧边栏标题
+    local SidebarTitle = UI.new("TextLabel", Sidebar, {
+        Size = UDim2.new(1, -10, 0, 40),
+        Position = UDim2.new(0, 10, 0, 8),
         BackgroundTransparency = 1,
         Text = "F脚本中心",
-        TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 20,
+        TextColor3 = THEME.Accent,
+        TextSize = math.floor(16 * scale),
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local SubTitleText = UI.new("TextLabel", TitleBar, {
-        Size = UDim2.new(0, 200, 0, 16),
-        Position = UDim2.new(0, 58, 0, 30),
+    local SidebarVersion = UI.new("TextLabel", Sidebar, {
+        Size = UDim2.new(1, -10, 0, 16),
+        Position = UDim2.new(0, 10, 0, 34),
         BackgroundTransparency = 1,
-        Text = "v6.0 模块化版",
-        TextColor3 = Color3.fromRGB(0,255,150),
-        TextSize = 12,
+        Text = "v6.0 模块化",
+        TextColor3 = THEME.TextDark,
+        TextSize = math.floor(10 * scale),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- 按钮容器
-    local LeftPanel = UI.new("Frame", MainFrame, {
-        Size = UDim2.new(0, 170, 1, -65),
-        Position = UDim2.new(0, 8, 0, 60),
-        BackgroundColor3 = Color3.fromRGB(35,35,42),
-        BackgroundTransparency = 0.4,
+    -- 分割线
+    local SidebarLine = UI.new("Frame", Sidebar, {
+        Size = UDim2.new(1, -16, 0, 1),
+        Position = UDim2.new(0, 8, 0, 56),
+        BackgroundColor3 = THEME.Border,
         BorderSizePixel = 0
     })
-    UI.corner(LeftPanel, 12)
 
-    local ScrollFrame = UI.new("ScrollingFrame", LeftPanel, {
-        Size = UDim2.new(1, -8, 1, -8),
-        Position = UDim2.new(0, 4, 0, 4),
+    -- 功能按钮滚动区
+    local ScrollFrame = UI.new("ScrollingFrame", Sidebar, {
+        Name = "ScrollFrame",
+        Size = UDim2.new(1, -8, 1, -110),
+        Position = UDim2.new(0, 4, 0, 62),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ScrollBarThickness = 3,
+        ScrollBarThickness = 2,
         CanvasSize = UDim2.new(0, 0, 0, 2000),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollBarImageColor3 = THEME.Border
     })
 
     local ScrollLayout = UI.new("UIListLayout", ScrollFrame, {
-        Padding = UDim.new(0, 6),
+        Padding = UDim.new(0, 4),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
 
-    -- 右侧内容区
-    local RightPanel = UI.new("Frame", MainFrame, {
-        Size = UDim2.new(1, -190, 1, -65),
-        Position = UDim2.new(0, 182, 0, 60),
-        BackgroundColor3 = Color3.fromRGB(35,35,42),
-        BackgroundTransparency = 0.4,
+    -- 玩家信息区（侧边栏底部）
+    local PlayerBar = UI.new("Frame", Sidebar, {
+        Size = UDim2.new(1, 0, 0, 44),
+        Position = UDim2.new(0, 0, 1, -44),
+        BackgroundColor3 = THEME.Card,
         BorderSizePixel = 0
     })
-    UI.corner(RightPanel, 12)
 
-    -- 玩家信息卡
-    local PlayerCard = UI.new("Frame", RightPanel, {
-        Size = UDim2.new(1, -10, 0, 80),
-        Position = UDim2.new(0, 5, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(45,45,55),
-        BackgroundTransparency = 0.3,
+    local AvatarContainer = UI.new("Frame", PlayerBar, {
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(0, 8, 0, 6),
+        BackgroundColor3 = THEME.Border,
         BorderSizePixel = 0
     })
-    UI.corner(PlayerCard, 10)
+    UI.corner(AvatarContainer, 6)
 
-    local AvatarImage = UI.new("ImageLabel", PlayerCard, {
-        Size = UDim2.new(0, 56, 0, 56),
-        Position = UDim2.new(0, 10, 0, 12),
-        BackgroundTransparency = 1
+    local AvatarImage = UI.new("ImageLabel", AvatarContainer, {
+        Size = UDim2.new(1, -2, 1, -2),
+        Position = UDim2.new(0, 1, 0, 1),
+        BackgroundTransparency = 1,
+        Image = ""
     })
-    UI.corner(AvatarImage, 28)
+    UI.corner(AvatarImage, 5)
     pcall(function() AvatarImage.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420) end)
 
-    local NameLabel = UI.new("TextLabel", PlayerCard, {
-        Size = UDim2.new(1, -80, 0, 22),
-        Position = UDim2.new(0, 74, 0, 10),
+    local PlayerName = UI.new("TextLabel", PlayerBar, {
+        Size = UDim2.new(1, -50, 0, 18),
+        Position = UDim2.new(0, 46, 0, 4),
         BackgroundTransparency = 1,
         Text = LocalPlayer.DisplayName,
-        TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 16,
+        TextColor3 = THEME.Text,
+        TextSize = math.floor(12 * scale),
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local RoleLabel = UI.new("TextLabel", PlayerCard, {
-        Size = UDim2.new(1, -80, 0, 18),
-        Position = UDim2.new(0, 74, 0, 32),
+    local PlayerInfo = UI.new("TextLabel", PlayerBar, {
+        Size = UDim2.new(1, -50, 0, 14),
+        Position = UDim2.new(0, 46, 0, 22),
         BackgroundTransparency = 1,
         Text = "普通用户",
-        TextColor3 = Color3.fromRGB(180,180,180),
-        TextSize = 13,
+        TextColor3 = THEME.TextDark,
+        TextSize = math.floor(10 * scale),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local TimeLabel = UI.new("TextLabel", PlayerCard, {
-        Size = UDim2.new(1, -80, 0, 16),
-        Position = UDim2.new(0, 74, 0, 52),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(150,150,255),
-        TextSize = 11,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
+    -- ========== 内容区 ==========
+    local ContentFrame = UI.new("Frame", MainFrame, {
+        Name = "ContentFrame",
+        Size = UDim2.new(1, -sidebarWidth, 1, 0),
+        Position = UDim2.new(0, sidebarWidth, 0, 0),
+        BackgroundColor3 = THEME.Background,
+        BackgroundTransparency = 0,
+        BorderSizePixel = 0
     })
-    coroutine.wrap(function()
-        while TimeLabel and TimeLabel.Parent do
-            TimeLabel.Text = os.date("%H:%M:%S")
-            task.wait(1)
-        end
-    end)()
 
-    -- 欢迎文字
-    local WelcomeLabel = UI.new("TextLabel", RightPanel, {
-        Size = UDim2.new(1, -10, 0, 28),
-        Position = UDim2.new(0, 5, 0, 90),
+    -- 标题栏
+    local TitleBar = UI.new("Frame", ContentFrame, {
+        Size = UDim2.new(1, 0, 0, 42),
+        BackgroundColor3 = THEME.Background,
+        BackgroundTransparency = 0,
+        BorderSizePixel = 0
+    })
+
+    -- 标题
+    local TitleLabel = UI.new("TextLabel", TitleBar, {
+        Size = UDim2.new(0, 200, 0, 24),
+        Position = UDim2.new(0, 14, 0, 9),
         BackgroundTransparency = 1,
-        Text = "欢迎使用 F脚本中心",
-        TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 15,
-        Font = Enum.Font.GothamBold
+        Text = "功能面板",
+        TextColor3 = THEME.Text,
+        TextSize = math.floor(15 * scale),
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left
     })
 
     -- 标题栏按钮
     local buttons = {}
     local buttonConfigs = {
-        {name = "ClearScripts", text = "🗑", color = Color3.fromRGB(255,50,80), pos = UDim2.new(1, -154, 0, 11)},
-        {name = "Layout", text = "⟲", color = Color3.fromRGB(0,162,255), pos = UDim2.new(1, -116, 0, 11)},
-        {name = "Minimize", text = "−", color = Color3.fromRGB(255,180,0), pos = UDim2.new(1, -78, 0, 11)},
-        {name = "Close", text = "×", color = Color3.fromRGB(255,100,50), pos = UDim2.new(1, -40, 0, 11)},
+        {name = "ClearScripts", text = "🗑", pos = UDim2.new(1, -110, 0, 7)},
+        {name = "Layout", text = "⟲", pos = UDim2.new(1, -78, 0, 7)},
+        {name = "Minimize", text = "−", pos = UDim2.new(1, -46, 0, 7)},
+        {name = "Close", text = "×", pos = UDim2.new(1, -14, 0, 7)},
     }
 
     for _, cfg in ipairs(buttonConfigs) do
         local btn = UI.new("TextButton", TitleBar, {
             Name = cfg.name.."Btn",
-            Size = UDim2.new(0, 32, 0, 32),
+            Size = UDim2.new(0, 26, 0, 26),
             Position = cfg.pos,
-            BackgroundColor3 = cfg.color,
+            BackgroundColor3 = THEME.Card,
             Text = cfg.text,
-            TextColor3 = Color3.fromRGB(255,255,255),
+            TextColor3 = THEME.TextDark,
             Font = Enum.Font.GothamBold,
-            TextSize = 18,
+            TextSize = 16,
             BorderSizePixel = 0
         })
-        UI.corner(btn, 8)
+        UI.corner(btn, 6)
+
+        -- 悬停效果
+        btn.MouseEnter:Connect(function()
+            UI.tween(btn, 0.2, {BackgroundColor3 = THEME.Hover, TextColor3 = THEME.Text})
+        end)
+        btn.MouseLeave:Connect(function()
+            UI.tween(btn, 0.2, {BackgroundColor3 = THEME.Card, TextColor3 = THEME.TextDark})
+        end)
+
         buttons[cfg.name] = btn
     end
+
+    -- 分割线
+    local ContentLine = UI.new("Frame", ContentFrame, {
+        Size = UDim2.new(1, -20, 0, 1),
+        Position = UDim2.new(0, 10, 0, 42),
+        BackgroundColor3 = THEME.Border,
+        BorderSizePixel = 0
+    })
+
+    -- 右侧内容面板
+    local RightPanel = UI.new("Frame", ContentFrame, {
+        Size = UDim2.new(1, 0, 1, -42),
+        Position = UDim2.new(0, 0, 0, 42),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0
+    })
+
+    -- 欢迎卡片
+    local WelcomeCard = UI.new("Frame", RightPanel, {
+        Size = UDim2.new(1, -20, 0, 80),
+        Position = UDim2.new(0, 10, 0, 10),
+        BackgroundColor3 = THEME.Card,
+        BorderSizePixel = 0
+    })
+    UI.corner(WelcomeCard, 8)
+
+    local WelcomeTitle = UI.new("TextLabel", WelcomeCard, {
+        Size = UDim2.new(1, -20, 0, 24),
+        Position = UDim2.new(0, 10, 0, 10),
+        BackgroundTransparency = 1,
+        Text = "欢迎使用 F脚本中心",
+        TextColor3 = THEME.Text,
+        TextSize = math.floor(14 * scale),
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local WelcomeDesc = UI.new("TextLabel", WelcomeCard, {
+        Size = UDim2.new(1, -20, 0, 18),
+        Position = UDim2.new(0, 10, 0, 36),
+        BackgroundTransparency = 1,
+        Text = "点击左侧功能按钮开始使用",
+        TextColor3 = THEME.TextDark,
+        TextSize = math.floor(11 * scale),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local TimeLabel = UI.new("TextLabel", WelcomeCard, {
+        Size = UDim2.new(1, -20, 0, 16),
+        Position = UDim2.new(0, 10, 0, 56),
+        BackgroundTransparency = 1,
+        TextColor3 = THEME.Accent,
+        TextSize = math.floor(10 * scale),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    coroutine.wrap(function()
+        while TimeLabel and TimeLabel.Parent do
+            TimeLabel.Text = os.date("%Y-%m-%d %H:%M:%S")
+            task.wait(1)
+        end
+    end)()
 
     -- FPS显示
     local fpsLabel = UI.new("TextLabel", ScreenGui, {
         Name = "FPSLabel",
         Size = UDim2.new(0, 80, 0, 22),
         Position = UDim2.new(1, -90, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(25,25,30),
-        BackgroundTransparency = 0.3,
+        BackgroundColor3 = THEME.Card,
+        BackgroundTransparency = 0.2,
         Text = "FPS: 60",
-        TextColor3 = Color3.fromRGB(0,255,100),
+        TextColor3 = THEME.Success,
         TextSize = 12,
         Font = Enum.Font.GothamBold,
         ZIndex = 200
@@ -260,7 +338,7 @@ function UI.createMainUI()
     UI.corner(fpsLabel, 6)
 
     local fpsStroke = UI.new("UIStroke", fpsLabel, {
-        Thickness = 1, Transparency = 0.5, Color = Color3.fromRGB(0,255,100)
+        Thickness = 1, Transparency = 0.5, Color = THEME.Success
     })
 
     local lastTime = tick()
@@ -275,110 +353,124 @@ function UI.createMainUI()
             if fpsLabel and fpsLabel.Parent then
                 fpsLabel.Text = "FPS: " .. fps
                 if fps >= 55 then
-                    fpsLabel.TextColor3 = Color3.fromRGB(0,255,100)
-                    fpsStroke.Color = Color3.fromRGB(0,255,100)
+                    fpsLabel.TextColor3 = THEME.Success
+                    fpsStroke.Color = THEME.Success
                 elseif fps >= 30 then
-                    fpsLabel.TextColor3 = Color3.fromRGB(255,220,0)
-                    fpsStroke.Color = Color3.fromRGB(255,220,0)
+                    fpsLabel.TextColor3 = Color3.fromRGB(255, 220, 0)
+                    fpsStroke.Color = Color3.fromRGB(255, 220, 0)
                 else
-                    fpsLabel.TextColor3 = Color3.fromRGB(255,70,70)
-                    fpsStroke.Color = Color3.fromRGB(255,70,70)
+                    fpsLabel.TextColor3 = THEME.Error
+                    fpsStroke.Color = THEME.Error
                 end
             end
         end
     end)
 
-    -- 创建悬浮F按钮
+    -- 创建悬浮按钮 (ChronixHub 风格圆形图标)
     local openBtn = UI.new("TextButton", ScreenGui, {
         Name = "OpenBtn",
         Size = UDim2.new(0, 50, 0, 50),
         Position = UDim2.new(0, 15, 0.5, -25),
-        BackgroundColor3 = Color3.fromRGB(0,162,255),
+        BackgroundColor3 = THEME.Accent,
         Text = "F",
-        TextColor3 = Color3.fromRGB(255,255,255),
+        TextColor3 = Color3.fromRGB(0, 0, 0),
         Font = Enum.Font.GothamBlack,
-        TextSize = 24,
+        TextSize = 22,
         BorderSizePixel = 0,
         ZIndex = 100,
         Active = true,
         Draggable = true
     })
-    UI.corner(openBtn, 14)
+    UI.corner(openBtn, 25) -- 完全圆形
+
+    -- 悬浮按钮边框
+    local openBtnStroke = UI.new("UIStroke", openBtn, {
+        Thickness = 2,
+        Transparency = 0.3,
+        Color = THEME.Accent
+    })
 
     return {
         ScreenGui = ScreenGui,
         MainFrame = MainFrame,
-        LeftPanel = LeftPanel,
-        RightPanel = RightPanel,
+        Sidebar = Sidebar,
         ScrollFrame = ScrollFrame,
-        PlayerCard = PlayerCard,
-        WelcomeLabel = WelcomeLabel,
+        ContentFrame = ContentFrame,
+        RightPanel = RightPanel,
+        WelcomeCard = WelcomeCard,
         buttons = buttons,
         openBtn = openBtn,
         UI = UI,
         frameWidth = frameWidth,
-        frameHeight = frameHeight
+        frameHeight = frameHeight,
+        sidebarWidth = sidebarWidth
     }
 end
 
--- 创建功能按钮
+-- 创建功能按钮 (ChronixHub 侧边栏风格)
 function UI.createFeatureButton(parent, info, index)
     local btn = UI.new("TextButton", parent, {
         Name = info.id.."Btn",
-        Size = UDim2.new(1, -8, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(50,50,60),
+        Size = UDim2.new(1, -8, 0, 34),
+        BackgroundColor3 = Color3.fromRGB(37, 37, 53),
         Text = "",
         BorderSizePixel = 0,
         LayoutOrder = index,
         AutoButtonColor = false
     })
-    UI.corner(btn, 8)
+    UI.corner(btn, 6)
 
+    -- 图标
     local iconLabel = UI.new("TextLabel", btn, {
-        Size = UDim2.new(0, 26, 0, 26),
-        Position = UDim2.new(0, 6, 0, 6),
+        Size = UDim2.new(0, 22, 0, 22),
+        Position = UDim2.new(0, 8, 0, 6),
         BackgroundTransparency = 1,
         Text = info.icon,
-        TextSize = 16,
+        TextSize = 14,
         Font = Enum.Font.GothamBold
     })
 
+    -- 文字
     local textLabel = UI.new("TextLabel", btn, {
         Name = "BtnText",
-        Size = UDim2.new(1, -44, 1, 0),
+        Size = UDim2.new(1, -40, 1, 0),
         Position = UDim2.new(0, 32, 0, 0),
         BackgroundTransparency = 1,
         Text = info.name,
-        TextColor3 = Color3.fromRGB(255,255,255),
+        TextColor3 = Color3.fromRGB(170, 170, 170),
         TextSize = 11,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local colorBar = UI.new("Frame", btn, {
-        Size = UDim2.new(0, 3, 0.6, 0),
-        Position = UDim2.new(1, -6, 0.2, 0),
-        BackgroundColor3 = info.color,
-        BorderSizePixel = 0
+    -- 选中指示条
+    local indicator = UI.new("Frame", btn, {
+        Name = "Indicator",
+        Size = UDim2.new(0, 3, 0.5, 0),
+        Position = UDim2.new(0, 0, 0.25, 0),
+        BackgroundColor3 = THEME.Accent,
+        BorderSizePixel = 0,
+        Visible = false
     })
-    UI.corner(colorBar, 2)
+    UI.corner(indicator, 2)
 
-    -- 按钮动画
-    local originalColor = Color3.fromRGB(50,50,60)
-    local hoverColor = Color3.fromRGB(65,65,80)
-    local clickColor = Color3.fromRGB(80,80,100)
+    -- 悬停动画
+    local originalColor = Color3.fromRGB(37, 37, 53)
+    local hoverColor = Color3.fromRGB(45, 45, 65)
 
     btn.MouseEnter:Connect(function()
-        UI.tween(btn, 0.2, {BackgroundColor3 = hoverColor, Size = UDim2.new(1, -4, 0, 40)})
+        UI.tween(btn, 0.2, {BackgroundColor3 = hoverColor})
+        textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
     btn.MouseLeave:Connect(function()
-        UI.tween(btn, 0.2, {BackgroundColor3 = originalColor, Size = UDim2.new(1, -8, 0, 38)})
+        UI.tween(btn, 0.2, {BackgroundColor3 = originalColor})
+        textLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
     end)
     btn.MouseButton1Down:Connect(function()
-        UI.tween(btn, 0.1, {BackgroundColor3 = clickColor, Size = UDim2.new(1, -12, 0, 36)})
+        UI.tween(btn, 0.1, {BackgroundColor3 = Color3.fromRGB(55, 55, 75)})
     end)
     btn.MouseButton1Up:Connect(function()
-        UI.tween(btn, 0.15, {BackgroundColor3 = hoverColor, Size = UDim2.new(1, -4, 0, 40)})
+        UI.tween(btn, 0.15, {BackgroundColor3 = hoverColor})
     end)
 
     return btn

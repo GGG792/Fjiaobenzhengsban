@@ -1,4 +1,4 @@
--- F脚本中心 v6.0 模块化版本
+-- F脚本中心 v6.0 模块化版本 (ChronixHub 风格 UI)
 -- 所有功能通过模块动态加载
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -26,6 +26,20 @@ end)
 -- 模块基础URL
 local MODULE_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/modules/"
 
+-- ChronixHub 配色
+local THEME = {
+    Background = Color3.fromRGB(30, 30, 46),
+    Sidebar = Color3.fromRGB(24, 24, 37),
+    Accent = Color3.fromRGB(119, 221, 255),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDark = Color3.fromRGB(170, 170, 170),
+    Border = Color3.fromRGB(44, 44, 62),
+    Card = Color3.fromRGB(37, 37, 53),
+    Hover = Color3.fromRGB(45, 45, 65),
+    Success = Color3.fromRGB(46, 213, 115),
+    Error = Color3.fromRGB(255, 71, 87),
+}
+
 -- 加载UI框架模块
 local UI = loadstring(game:HttpGet(MODULE_URL .. "UIFramework.lua"))()
 
@@ -33,57 +47,57 @@ local UI = loadstring(game:HttpGet(MODULE_URL .. "UIFramework.lua"))()
 local uiElements = UI.createMainUI()
 local ScreenGui = uiElements.ScreenGui
 local MainFrame = uiElements.MainFrame
-local LeftPanel = uiElements.LeftPanel
-local RightPanel = uiElements.RightPanel
+local Sidebar = uiElements.Sidebar
 local ScrollFrame = uiElements.ScrollFrame
-local WelcomeLabel = uiElements.WelcomeLabel
+local ContentFrame = uiElements.ContentFrame
+local RightPanel = uiElements.RightPanel
 local buttons = uiElements.buttons
 local openBtn = uiElements.openBtn
 
 -- 功能按钮定义 (id -> 模块名映射)
 local btnDefs = {
-    {name = "启用飞行",    icon = "✈",  color = Color3.fromRGB(0,162,255),   id = "fly",       module = "Fly"},
-    {name = "旋转脚本",    icon = "🔄", color = Color3.fromRGB(255,100,50),  id = "spin",      module = "Spin"},
-    {name = "环绕旋转",    icon = "🪐", color = Color3.fromRGB(150,50,255),  id = "orbit",     module = "Orbit"},
-    {name = "无头效果",    icon = "👤", color = Color3.fromRGB(100,100,100),  id = "headless",  module = "Headless"},
-    {name = "燃烧效果",    icon = "🔥", color = Color3.fromRGB(255,50,0),    id = "fire",       module = "FireEffect"},
-    {name = "烟雾效果",    icon = "💨", color = Color3.fromRGB(150,150,150),  id = "smoke",      module = "SmokeEffect"},
-    {name = "加速脚本",    icon = "⚡", color = Color3.fromRGB(255,220,0),   id = "speed",      module = "Speed"},
-    {name = "跳跃增强",    icon = "🦘", color = Color3.fromRGB(50,255,100),   id = "jump",       module = "Jump"},
-    {name = "穿墙脚本",    icon = "🧱", color = Color3.fromRGB(180,100,50),  id = "noclip",     module = "Noclip"},
-    {name = "ESP透视",     icon = "👁", color = Color3.fromRGB(255,50,100),  id = "esp",        module = "ESP"},
-    {name = "车辆加速",    icon = "🏎", color = Color3.fromRGB(255,165,0),   id = "carboost",   module = "CarBoost"},
-    {name = "快速互动",    icon = "⚡", color = Color3.fromRGB(0,255,200),   id = "instantaction", module = "InstantAction"},
+    {name = "启用飞行",    icon = "✈",  id = "fly",       module = "Fly"},
+    {name = "旋转脚本",    icon = "🔄", id = "spin",      module = "Spin"},
+    {name = "环绕旋转",    icon = "🪐", id = "orbit",     module = "Orbit"},
+    {name = "无头效果",    icon = "👤", id = "headless",  module = "Headless"},
+    {name = "燃烧效果",    icon = "🔥", id = "fire",       module = "FireEffect"},
+    {name = "烟雾效果",    icon = "💨", id = "smoke",      module = "SmokeEffect"},
+    {name = "加速脚本",    icon = "⚡", id = "speed",      module = "Speed"},
+    {name = "跳跃增强",    icon = "🦘", id = "jump",       module = "Jump"},
+    {name = "穿墙脚本",    icon = "🧱", id = "noclip",     module = "Noclip"},
+    {name = "ESP透视",     icon = "👁", id = "esp",        module = "ESP"},
+    {name = "车辆加速",    icon = "🏎", id = "carboost",   module = "CarBoost"},
+    {name = "快速互动",    icon = "⚡", id = "instantaction", module = "InstantAction"},
     -- 新增ChronixHub功能
-    {name = "防挂机",      icon = "😴", color = Color3.fromRGB(100,255,100), id = "antiafk",    module = "AntiAFK"},
-    {name = "夜视模式",    icon = "🌙", color = Color3.fromRGB(200,200,100), id = "nightvision", module = "NightVision"},
-    {name = "X光透视",     icon = "👓", color = Color3.fromRGB(255,255,0),   id = "xray",       module = "NightVision"},
-    {name = "自由相机",    icon = "📹", color = Color3.fromRGB(150,100,255), id = "freecam",    module = "Freecam"},
-    {name = "点击传送",    icon = "👆", color = Color3.fromRGB(0,200,150),   id = "clicktp",    module = "ClickTP"},
-    {name = "无限连跳",    icon = "🦘", color = Color3.fromRGB(50,200,255),  id = "infjump",    module = "InfiniteJump"},
-    {name = "防甩飞",      icon = "🛡", color = Color3.fromRGB(255,100,100), id = "antifling",  module = "AntiFling"},
-    {name = "防踢出",      icon = "🚫", color = Color3.fromRGB(255,50,50),   id = "antikick",   module = "AntiFling"},
-    {name = "路径点",      icon = "📍", color = Color3.fromRGB(0,255,100),   id = "waypoint",   module = "Waypoint"},
+    {name = "防挂机",      icon = "😴", id = "antiafk",    module = "AntiAFK"},
+    {name = "夜视模式",    icon = "🌙", id = "nightvision", module = "NightVision"},
+    {name = "X光透视",     icon = "👓", id = "xray",       module = "NightVision"},
+    {name = "自由相机",    icon = "📹", id = "freecam",    module = "Freecam"},
+    {name = "点击传送",    icon = "👆", id = "clicktp",    module = "ClickTP"},
+    {name = "无限连跳",    icon = "🦘", id = "infjump",    module = "InfiniteJump"},
+    {name = "防甩飞",      icon = "🛡", id = "antifling",  module = "AntiFling"},
+    {name = "防踢出",      icon = "🚫", id = "antikick",   module = "AntiFling"},
+    {name = "路径点",      icon = "📍", id = "waypoint",   module = "Waypoint"},
     -- 特殊功能（非模块）
-    {name = "数据修改器",  icon = "📊", color = Color3.fromRGB(180,100,255), id = "datamod",    module = nil},
-    {name = "永久存在",    icon = "💾", color = Color3.fromRGB(255,200,100), id = "permanent",  module = nil},
-    {name = "取消永久",    icon = "🗑", color = Color3.fromRGB(255,100,100),  id = "unpermanent", module = nil},
-    {name = "传送玩家",    icon = "📍", color = Color3.fromRGB(0,255,100),   id = "teleport",   module = nil},
-    {name = "标记此处",    icon = "📌", color = Color3.fromRGB(255,200,0),   id = "markpoint",  module = nil},
-    {name = "标记列表",    icon = "📋", color = Color3.fromRGB(255,150,50),  id = "marklist",   module = nil},
-    {name = "管理员工具",  icon = "🛠", color = Color3.fromRGB(255,215,0),   id = "admintool",  module = nil},
-    {name = "服务器脚本",  icon = "🖥", color = Color3.fromRGB(200,150,255), id = "serverscripts", module = nil},
-    {name = "4:3比例",     icon = "📐", color = Color3.fromRGB(255,180,100), id = "ratio43",    module = nil},
-    {name = "超广角",      icon = "📷", color = Color3.fromRGB(100,255,200), id = "ultrawide",  module = nil},
-    {name = "切换身份",    icon = "🎭", color = Color3.fromRGB(255,100,255), id = "switchrole", module = nil},
-    {name = "赞助作者",    icon = "☕", color = Color3.fromRGB(255,215,0),   id = "sponsor",    module = nil},
+    {name = "数据修改器",  icon = "📊", id = "datamod",    module = nil},
+    {name = "永久存在",    icon = "💾", id = "permanent",  module = nil},
+    {name = "取消永久",    icon = "🗑", id = "unpermanent", module = nil},
+    {name = "传送玩家",    icon = "📍", id = "teleport",   module = nil},
+    {name = "标记此处",    icon = "📌", id = "markpoint",  module = nil},
+    {name = "标记列表",    icon = "📋", id = "marklist",   module = nil},
+    {name = "管理员工具",  icon = "🛠", id = "admintool",  module = nil},
+    {name = "服务器脚本",  icon = "🖥", id = "serverscripts", module = nil},
+    {name = "4:3比例",     icon = "📐", id = "ratio43",    module = nil},
+    {name = "超广角",      icon = "📷", id = "ultrawide",  module = nil},
+    {name = "切换身份",    icon = "🎭", id = "switchrole", module = nil},
+    {name = "赞助作者",    icon = "☕", id = "sponsor",    module = nil},
 }
 
 -- 已加载的模块缓存
 local loadedModules = {}
 local buttonRefs = {}
-local buttonStates = {} -- 记录按钮状态
-local savedLocations = {} -- 标记点列表
+local buttonStates = {}
+local savedLocations = {}
 local isPermanent = false
 
 -- 加载模块函数
@@ -114,6 +128,7 @@ local function updateButtonState(id, isActive)
     local btn = buttonRefs[id]
     if not btn then return end
     local textLabel = btn:FindFirstChild("BtnText")
+    local indicator = btn:FindFirstChild("Indicator")
     if textLabel then
         local originalName = nil
         for _, info in ipairs(btnDefs) do
@@ -124,8 +139,11 @@ local function updateButtonState(id, isActive)
         end
         if originalName then
             textLabel.Text = isActive and (originalName .. " ✓") or originalName
-            textLabel.TextColor3 = isActive and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(255, 255, 255)
+            textLabel.TextColor3 = isActive and THEME.Success or Color3.fromRGB(170, 170, 170)
         end
+    end
+    if indicator then
+        indicator.Visible = isActive
     end
 end
 
@@ -137,9 +155,9 @@ for i, info in ipairs(btnDefs) do
 
     btn.MouseButton1Click:Connect(function()
         -- 点击动画
-        UI.tween(btn, 0.1, {BackgroundColor3 = Color3.fromRGB(80,80,100), Size = UDim2.new(1, -12, 0, 36)})
+        UI.tween(btn, 0.1, {BackgroundColor3 = Color3.fromRGB(55, 55, 75)})
         task.delay(0.1, function()
-            UI.tween(btn, 0.15, {BackgroundColor3 = Color3.fromRGB(65,65,80), Size = UDim2.new(1, -4, 0, 40)})
+            UI.tween(btn, 0.15, {BackgroundColor3 = Color3.fromRGB(45, 45, 65)})
         end)
 
         -- 处理模块按钮
@@ -147,7 +165,6 @@ for i, info in ipairs(btnDefs) do
             local mod = loadModule(info.module)
             if mod then
                 local success, result = pcall(function()
-                    -- 特殊处理：NightVision有两个功能
                     if info.id == "nightvision" and mod.toggleNightVision then
                         return mod.toggleNightVision()
                     elseif info.id == "xray" and mod.toggleXRay then
@@ -204,13 +221,11 @@ for i, info in ipairs(btnDefs) do
             updateButtonState("permanent", false)
 
         elseif info.id == "teleport" then
-            -- 简单的传送输入框
             pcall(function()
                 game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "传送玩家", Text = "点击玩家即可传送", Duration = 3
+                    Title = "传送玩家", Text = "点击地面即可传送", Duration = 3
                 })
             end)
-            -- 临时点击传送
             local conn
             conn = UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -267,50 +282,46 @@ for i, info in ipairs(btnDefs) do
             end)
 
         elseif info.id == "serverscripts" then
-            -- 服务器脚本弹窗
             pcall(function()
                 local scripts = {
                     {name = "自然灾害", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/ziran.lua"},
-                    {name = " Brookhaven", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/brookhaven.lua"},
+                    {name = "Brookhaven", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/brookhaven.lua"},
                     {name = "监狱人生", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/prisonlife.lua"},
                     {name = "收养我", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/adoptme.lua"},
-                    {name = " Blox Fruits", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bloxfruits.lua"},
-                    {name = " King Legacy", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/kinglegacy.lua"},
-                    {name = " Arsenal", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/arsenal.lua"},
-                    {name = " Phantom Forces", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/phantomforces.lua"},
-                    {name = " Doors", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/doors.lua"},
-                    {name = " Bedwars", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bedwars.lua"},
+                    {name = "Blox Fruits", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bloxfruits.lua"},
+                    {name = "King Legacy", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/kinglegacy.lua"},
+                    {name = "Arsenal", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/arsenal.lua"},
+                    {name = "Phantom Forces", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/phantomforces.lua"},
+                    {name = "Doors", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/doors.lua"},
+                    {name = "Bedwars", url = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/scripts/bedwars.lua"},
                 }
 
                 local popup = Instance.new("Frame")
                 popup.Name = "ServerScriptsPopup"
-                popup.Size = UDim2.new(0, 300, 0, 350)
-                popup.Position = UDim2.new(0.5, -150, 0.5, -175)
-                popup.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-                popup.BackgroundTransparency = 0.1
+                popup.Size = UDim2.new(0, 320, 0, 380)
+                popup.Position = UDim2.new(0.5, -160, 0.5, -190)
+                popup.BackgroundColor3 = THEME.Background
                 popup.BorderSizePixel = 0
                 popup.Parent = ScreenGui
                 popup.ZIndex = 50
-
-                local corner = Instance.new("UICorner")
-                corner.CornerRadius = UDim.new(0, 12)
-                corner.Parent = popup
+                Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 8)
+                Instance.new("UIStroke", popup).Color = THEME.Border
 
                 local title = Instance.new("TextLabel")
                 title.Size = UDim2.new(1, 0, 0, 40)
                 title.BackgroundTransparency = 1
                 title.Text = "🖥 服务器脚本"
-                title.TextColor3 = Color3.fromRGB(255, 255, 255)
+                title.TextColor3 = THEME.Text
                 title.TextSize = 16
                 title.Font = Enum.Font.GothamBold
                 title.Parent = popup
 
                 local closeBtn = Instance.new("TextButton")
-                closeBtn.Size = UDim2.new(0, 30, 0, 30)
-                closeBtn.Position = UDim2.new(1, -35, 0, 5)
-                closeBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+                closeBtn.Size = UDim2.new(0, 28, 0, 28)
+                closeBtn.Position = UDim2.new(1, -36, 0, 6)
+                closeBtn.BackgroundColor3 = THEME.Card
                 closeBtn.Text = "×"
-                closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                closeBtn.TextColor3 = THEME.TextDark
                 closeBtn.Font = Enum.Font.GothamBold
                 closeBtn.TextSize = 18
                 closeBtn.Parent = popup
@@ -318,11 +329,11 @@ for i, info in ipairs(btnDefs) do
                 closeBtn.MouseButton1Click:Connect(function() popup:Destroy() end)
 
                 local scroll = Instance.new("ScrollingFrame")
-                scroll.Size = UDim2.new(1, -10, 1, -50)
-                scroll.Position = UDim2.new(0, 5, 0, 45)
+                scroll.Size = UDim2.new(1, -16, 1, -50)
+                scroll.Position = UDim2.new(0, 8, 0, 45)
                 scroll.BackgroundTransparency = 1
                 scroll.BorderSizePixel = 0
-                scroll.ScrollBarThickness = 4
+                scroll.ScrollBarThickness = 3
                 scroll.CanvasSize = UDim2.new(0, 0, 0, #scripts * 45)
                 scroll.Parent = popup
 
@@ -334,19 +345,17 @@ for i, info in ipairs(btnDefs) do
                 for idx, scriptInfo in ipairs(scripts) do
                     local sbtn = Instance.new("TextButton")
                     sbtn.Size = UDim2.new(1, -5, 0, 40)
-                    sbtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+                    sbtn.BackgroundColor3 = THEME.Card
                     sbtn.Text = scriptInfo.name
-                    sbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    sbtn.TextColor3 = THEME.Text
                     sbtn.TextSize = 13
                     sbtn.Font = Enum.Font.GothamBold
                     sbtn.LayoutOrder = idx
                     sbtn.Parent = scroll
-                    Instance.new("UICorner", sbtn).CornerRadius = UDim.new(0, 8)
+                    Instance.new("UICorner", sbtn).CornerRadius = UDim.new(0, 6)
 
                     sbtn.MouseButton1Click:Connect(function()
-                        pcall(function()
-                            loadstring(game:HttpGet(scriptInfo.url))()
-                        end)
+                        pcall(function() loadstring(game:HttpGet(scriptInfo.url))() end)
                         pcall(function()
                             game:GetService("StarterGui"):SetCore("SendNotification", {
                                 Title = "加载脚本", Text = scriptInfo.name .. " 已加载", Duration = 3
@@ -415,7 +424,7 @@ local function expandUI()
         UI.tween(MainFrame, 0.5, {
             Position = UDim2.new(0.5, -uiElements.frameWidth/2, 0.5, -uiElements.frameHeight/2),
             Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight),
-            BackgroundTransparency = 0.2
+            BackgroundTransparency = 0
         }, Enum.EasingStyle.Back)
 
         task.delay(0.5, function()
@@ -469,28 +478,6 @@ end)
 
 buttons.Close.MouseButton1Click:Connect(collapseUI)
 buttons.Minimize.MouseButton1Click:Connect(collapseUI)
-
--- 横版/竖版切换
-local isHorizontal = false
-buttons.Layout.MouseButton1Click:Connect(function()
-    if animating then return end
-    animating = true
-    isHorizontal = not isHorizontal
-
-    if isHorizontal then
-        UI.tween(LeftPanel, 0.4, {Size = UDim2.new(1, -16, 0, 120), Position = UDim2.new(0, 8, 0, 60)})
-        UI.tween(RightPanel, 0.4, {Size = UDim2.new(1, -16, 1, -190), Position = UDim2.new(0, 8, 0, 185)})
-        UI.tween(MainFrame, 0.4, {Size = UDim2.new(0, math.min(uiElements.frameWidth * 1.3, Camera.ViewportSize.X * 0.9), 0, uiElements.frameHeight)})
-        buttons.Layout.Text = "⟳"
-    else
-        UI.tween(LeftPanel, 0.4, {Size = UDim2.new(0, 170, 1, -65), Position = UDim2.new(0, 8, 0, 60)})
-        UI.tween(RightPanel, 0.4, {Size = UDim2.new(1, -190, 1, -65), Position = UDim2.new(0, 182, 0, 60)})
-        UI.tween(MainFrame, 0.4, {Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight)})
-        buttons.Layout.Text = "⟲"
-    end
-
-    task.delay(0.4, function() animating = false end)
-end)
 
 -- 删除脚本按钮
 buttons.ClearScripts.MouseButton1Click:Connect(function()
@@ -561,12 +548,12 @@ MainFrame.Size = UDim2.new(0, 0, 0, 0)
 MainFrame.BackgroundTransparency = 1
 UI.tween(MainFrame, 0.6, {
     Size = UDim2.new(0, uiElements.frameWidth, 0, uiElements.frameHeight),
-    BackgroundTransparency = 0.2
+    BackgroundTransparency = 0
 }, Enum.EasingStyle.Back)
 
 -- 通知
 pcall(function()
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "F脚本中心", Text = "v6.0 模块化版已加载 | 共 " .. #btnDefs .. " 个功能", Duration = 4
+        Title = "F脚本中心", Text = "v6.0 ChronixHub风格已加载 | 共 " .. #btnDefs .. " 个功能", Duration = 4
     })
 end)
