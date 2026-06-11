@@ -1,24 +1,35 @@
 -- ============================================
--- F脚本中心 v6.0 启动器
--- 风格与主脚本界面统一
+-- F脚本中心 v6.0 启动器 (ChronixHub 风格)
+-- 深蓝紫主题 + 脉冲加载动画
 -- ============================================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 local Camera = workspace.CurrentCamera
 
 local MAIN_URL = "https://raw.githubusercontent.com/GGG792/Fjiaobenzhengsban/refs/heads/main/zhengw.lua"
 
+-- ChronixHub 配色方案
+local THEME = {
+    Background = Color3.fromRGB(30, 30, 46),
+    Sidebar = Color3.fromRGB(24, 24, 37),
+    Accent = Color3.fromRGB(119, 221, 255),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDark = Color3.fromRGB(170, 170, 170),
+    Border = Color3.fromRGB(44, 44, 62),
+    Card = Color3.fromRGB(37, 37, 53),
+    Hover = Color3.fromRGB(45, 45, 65),
+    Success = Color3.fromRGB(46, 213, 115),
+    Error = Color3.fromRGB(255, 71, 87),
+}
+
 -- 屏幕适配
 local screenSize = Camera.ViewportSize
-local isMobile = UserInputService.TouchEnabled
-local baseW, baseH = 320, 220
-local scale = math.min(screenSize.X / baseW, screenSize.Y / baseH, 1.2)
-if isMobile then scale = math.min(scale, 1.0) end
-local fw = math.floor(baseW * scale)
-local fh = math.floor(baseH * scale)
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local scale = isMobile and 0.7 or 1
 
 -- 清理旧启动器
 pcall(function()
@@ -33,365 +44,490 @@ ScreenGui.Name = "FScriptLoader"
 ScreenGui.Parent = LocalPlayer.PlayerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = true
 
--- 主框架（与主脚本同款深色背景）
+-- 背景模糊
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Name = "FLoaderBlur"
+blurEffect.Size = 0
+blurEffect.Parent = Lighting
+
+local blurTween = TweenService:Create(blurEffect,
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {Size = 12}
+)
+blurTween:Play()
+
+-- 主屏幕背景（半透明黑色遮罩）
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, fw, 0, fh)
-MainFrame.Position = UDim2.new(0.5, -fw/2, 0.5, -fh/2)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-MainFrame.BackgroundTransparency = 0.2
+MainFrame.Size = UDim2.new(1, 0, 1, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 1
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.ClipsDescendants = false
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 16)
-MainCorner.Parent = MainFrame
+-- 背景渐入
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+    BackgroundTransparency = 0.4
+}):Play()
 
--- 炫彩流光边框（与主脚本同款）
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Thickness = 3
-MainStroke.Transparency = 0.15
-MainStroke.Parent = MainFrame
-coroutine.wrap(function()
-    while MainStroke and MainStroke.Parent do
-        MainStroke.Color = Color3.fromHSV((tick() * 0.4) % 1, 1, 1)
-        RunService.RenderStepped:Wait()
-    end
-end)()
+-- 氛围光晕
+local GlowAmbient = Instance.new("Frame")
+GlowAmbient.Name = "GlowAmbient"
+GlowAmbient.Size = UDim2.new(1.5, 0, 1.5, 0)
+GlowAmbient.Position = UDim2.new(0.5, 0, 0.5, 0)
+GlowAmbient.AnchorPoint = Vector2.new(0.5, 0.5)
+GlowAmbient.BackgroundTransparency = 1
+GlowAmbient.BorderSizePixel = 0
+GlowAmbient.ZIndex = 25
+GlowAmbient.Parent = MainFrame
 
--- ========== 标题栏（与主脚本同款布局） ==========
-local TitleBar = Instance.new("Frame")
-TitleBar.Parent = MainFrame
-TitleBar.Size = UDim2.new(1, 0, 0, math.floor(50 * scale))
-TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-TitleBar.BackgroundTransparency = 0.3
-TitleBar.BorderSizePixel = 0
+local GlowColor = Instance.new("Frame")
+GlowColor.Size = UDim2.new(1, 0, 1, 0)
+GlowColor.BackgroundColor3 = THEME.Accent
+GlowColor.BackgroundTransparency = 0.95
+GlowColor.BorderSizePixel = 0
+GlowColor.ZIndex = 25
+GlowColor.Parent = GlowAmbient
 
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 16)
-TitleCorner.Parent = TitleBar
+-- ========== 加载内容区 ==========
+local contentWidth = isMobile and 280 or 400
+local contentHeight = isMobile and 45 or 60
 
--- F 图标（与主脚本同款蓝色圆角方块）
-local IconSize = math.floor(36 * scale)
-local TitleIcon = Instance.new("TextLabel")
-TitleIcon.Parent = TitleBar
-TitleIcon.Size = UDim2.new(0, IconSize, 0, IconSize)
-TitleIcon.Position = UDim2.new(0, math.floor(10 * scale), 0, math.floor(7 * scale))
-TitleIcon.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-TitleIcon.Text = "F"
-TitleIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleIcon.Font = Enum.Font.GothamBlack
-TitleIcon.TextSize = math.floor(20 * scale)
+local ContentGroup = Instance.new("Frame")
+ContentGroup.Name = "ContentGroup"
+ContentGroup.Size = UDim2.new(0, contentWidth, 0, contentHeight)
+ContentGroup.Position = UDim2.new(0.5, -contentWidth/2, 0.5, -contentHeight/2)
+ContentGroup.BackgroundTransparency = 1
+ContentGroup.BorderSizePixel = 0
+ContentGroup.Parent = MainFrame
 
-local IconCorner = Instance.new("UICorner")
-IconCorner.CornerRadius = UDim.new(0, 10)
-IconCorner.Parent = TitleIcon
+-- 脉冲圆点容器
+local dotContainerSize = isMobile and 45 or 60
+local DotContainer = Instance.new("Frame")
+DotContainer.Name = "DotContainer"
+DotContainer.Size = UDim2.new(0, dotContainerSize, 0, dotContainerSize)
+DotContainer.Position = UDim2.new(0.5, -dotContainerSize/2, 0.5, -dotContainerSize/2)
+DotContainer.BackgroundTransparency = 1
+DotContainer.BorderSizePixel = 0
+DotContainer.Parent = ContentGroup
 
--- 标题文字
-local TitleText = Instance.new("TextLabel")
-TitleText.Parent = TitleBar
-TitleText.Size = UDim2.new(0, 180, 0, math.floor(22 * scale))
-TitleText.Position = UDim2.new(0, math.floor(52 * scale), 0, math.floor(6 * scale))
-TitleText.BackgroundTransparency = 1
-TitleText.Text = "F脚本中心"
-TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleText.TextSize = math.floor(18 * scale)
-TitleText.Font = Enum.Font.GothamBold
-TitleText.TextXAlignment = Enum.TextXAlignment.Left
+-- 主圆点
+local dotSize = isMobile and 14 or 20
+local dotHalf = dotSize / 2
 
--- 副标题
-local SubTitle = Instance.new("TextLabel")
-SubTitle.Parent = TitleBar
-SubTitle.Size = UDim2.new(0, 180, 0, math.floor(14 * scale))
-SubTitle.Position = UDim2.new(0, math.floor(52 * scale), 0, math.floor(28 * scale))
-SubTitle.BackgroundTransparency = 1
-SubTitle.Text = "v6.0 模块化版"
-SubTitle.TextColor3 = Color3.fromRGB(0, 255, 150)
-SubTitle.TextSize = math.floor(11 * scale)
-SubTitle.Font = Enum.Font.Gotham
-SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+local Dot1 = Instance.new("Frame")
+Dot1.Name = "Dot1"
+Dot1.Size = UDim2.new(0, dotSize, 0, dotSize)
+Dot1.Position = UDim2.new(0.5, -dotHalf, 0.5, -dotHalf)
+Dot1.BackgroundColor3 = Color3.fromRGB(240, 243, 250)
+Dot1.BackgroundTransparency = 1
+Dot1.BorderSizePixel = 0
+Dot1.ZIndex = 31
+Dot1.Parent = DotContainer
 
--- ========== 内容区域 ==========
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Parent = MainFrame
-ContentFrame.Size = UDim2.new(1, -16, 1, -math.floor(58 * scale))
-ContentFrame.Position = UDim2.new(0, 8, 0, math.floor(54 * scale))
-ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-ContentFrame.BackgroundTransparency = 0.4
-ContentFrame.BorderSizePixel = 0
+local Dot1Corner = Instance.new("UICorner")
+Dot1Corner.CornerRadius = UDim.new(1, 0)
+Dot1Corner.Parent = Dot1
 
-local ContentCorner = Instance.new("UICorner")
-ContentCorner.CornerRadius = UDim.new(0, 12)
-ContentCorner.Parent = ContentFrame
+-- 脉冲波纹1
+local Dot2 = Instance.new("Frame")
+Dot2.Name = "Dot2"
+Dot2.Size = UDim2.new(0, dotSize, 0, dotSize)
+Dot2.Position = UDim2.new(0.5, -dotHalf, 0.5, -dotHalf)
+Dot2.BackgroundColor3 = Color3.fromRGB(240, 243, 250)
+Dot2.BackgroundTransparency = 1
+Dot2.BorderSizePixel = 0
+Dot2.ZIndex = 30
+Dot2.Parent = DotContainer
 
--- 欢迎文字
-local WelcomeText = Instance.new("TextLabel")
-WelcomeText.Parent = ContentFrame
-WelcomeText.Size = UDim2.new(1, -10, 0, math.floor(24 * scale))
-WelcomeText.Position = UDim2.new(0, 5, 0, math.floor(8 * scale))
-WelcomeText.BackgroundTransparency = 1
-WelcomeText.Text = "欢迎使用 F脚本中心"
-WelcomeText.TextColor3 = Color3.fromRGB(255, 255, 255)
-WelcomeText.TextSize = math.floor(14 * scale)
-WelcomeText.Font = Enum.Font.GothamBold
+local Dot2Corner = Instance.new("UICorner")
+Dot2Corner.CornerRadius = UDim.new(1, 0)
+Dot2Corner.Parent = Dot2
 
--- 状态文字
-local StatusText = Instance.new("TextLabel")
-StatusText.Parent = ContentFrame
-StatusText.Size = UDim2.new(1, -10, 0, math.floor(18 * scale))
-StatusText.Position = UDim2.new(0, 5, 0, math.floor(34 * scale))
-StatusText.BackgroundTransparency = 1
-StatusText.Text = "点击下方按钮启动脚本"
-StatusText.TextColor3 = Color3.fromRGB(150, 150, 255)
-StatusText.TextSize = math.floor(11 * scale)
-StatusText.Font = Enum.Font.Gotham
+-- 脉冲波纹2
+local Dot3 = Instance.new("Frame")
+Dot3.Name = "Dot3"
+Dot3.Size = UDim2.new(0, dotSize, 0, dotSize)
+Dot3.Position = UDim2.new(0.5, -dotHalf, 0.5, -dotHalf)
+Dot3.BackgroundColor3 = Color3.fromRGB(240, 243, 250)
+Dot3.BackgroundTransparency = 1
+Dot3.BorderSizePixel = 0
+Dot3.ZIndex = 29
+Dot3.Parent = DotContainer
 
--- 进度条背景
-local ProgressBg = Instance.new("Frame")
-ProgressBg.Parent = ContentFrame
-ProgressBg.Size = UDim2.new(1, -20, 0, math.floor(6 * scale))
-ProgressBg.Position = UDim2.new(0, 10, 0, math.floor(56 * scale))
-ProgressBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-ProgressBg.BorderSizePixel = 0
-ProgressBg.BackgroundTransparency = 0.5
+local Dot3Corner = Instance.new("UICorner")
+Dot3Corner.CornerRadius = UDim.new(1, 0)
+Dot3Corner.Parent = Dot3
+
+-- 品牌标题
+local titleFontSize = isMobile and 28 or 42
+local titleWidth = isMobile and 220 or 300
+local titleOffset = isMobile and 80 or 70
+
+local BrandTitle = Instance.new("TextLabel")
+BrandTitle.Name = "BrandTitle"
+BrandTitle.Size = UDim2.new(0, titleWidth, 0, 50 * scale)
+BrandTitle.Position = UDim2.new(0, titleOffset * scale, 0.5, -25 * scale)
+BrandTitle.BackgroundTransparency = 1
+BrandTitle.Text = "F脚本中心"
+BrandTitle.TextColor3 = THEME.Text
+BrandTitle.Font = Enum.Font.GothamBold
+BrandTitle.TextSize = titleFontSize
+BrandTitle.TextTransparency = 1
+BrandTitle.TextXAlignment = Enum.TextXAlignment.Left
+BrandTitle.Parent = ContentGroup
+
+-- 版本号
+local VersionText = Instance.new("TextLabel")
+VersionText.Size = UDim2.new(0, 100, 0, 20)
+VersionText.Position = UDim2.new(0, titleOffset * scale, 0.5, 15 * scale)
+VersionText.BackgroundTransparency = 1
+VersionText.Text = "v6.0"
+VersionText.TextColor3 = THEME.Accent
+VersionText.Font = Enum.Font.GothamMedium
+VersionText.TextSize = isMobile and 12 or 14
+VersionText.TextTransparency = 1
+VersionText.TextXAlignment = Enum.TextXAlignment.Left
+VersionText.Parent = ContentGroup
+
+-- ========== 底部加载信息 ==========
+local footerWidth = isMobile and 200 or 260
+local footerYOffset = isMobile and -80 or -120
+
+local LoadingFooter = Instance.new("Frame")
+LoadingFooter.Name = "LoadingFooter"
+LoadingFooter.Size = UDim2.new(0, footerWidth, 0, 60 * scale)
+LoadingFooter.Position = UDim2.new(0.5, -footerWidth/2, 1, footerYOffset * scale)
+LoadingFooter.BackgroundTransparency = 1
+LoadingFooter.BorderSizePixel = 0
+LoadingFooter.ZIndex = 35
+LoadingFooter.Parent = MainFrame
+
+-- 加载文字
+local LoadingText = Instance.new("TextLabel")
+LoadingText.Name = "LoadingText"
+LoadingText.Size = UDim2.new(1, 0, 0, 24 * scale)
+LoadingText.Position = UDim2.new(0, 0, 0, 0)
+LoadingText.BackgroundTransparency = 1
+LoadingText.Text = "加载中 · LOADING"
+LoadingText.TextColor3 = Color3.fromRGB(176, 199, 233)
+LoadingText.Font = Enum.Font.GothamMedium
+LoadingText.TextSize = isMobile and 13 or 16
+LoadingText.TextTransparency = 1
+LoadingText.Parent = LoadingFooter
+
+-- 进度条容器
+local ProgressContainer = Instance.new("Frame")
+ProgressContainer.Name = "ProgressContainer"
+ProgressContainer.Size = UDim2.new(1, 0, 0, 3 * scale)
+ProgressContainer.Position = UDim2.new(0, 0, 0, 36 * scale)
+ProgressContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ProgressContainer.BackgroundTransparency = 0.92
+ProgressContainer.BorderSizePixel = 0
+ProgressContainer.Parent = LoadingFooter
 
 local ProgressCorner = Instance.new("UICorner")
-ProgressCorner.CornerRadius = UDim.new(0, 3)
-ProgressCorner.Parent = ProgressBg
+ProgressCorner.CornerRadius = UDim.new(0, 20 * scale)
+ProgressCorner.Parent = ProgressContainer
 
--- 进度条前景
+-- 进度条填充
 local ProgressFill = Instance.new("Frame")
-ProgressFill.Parent = ProgressBg
+ProgressFill.Name = "ProgressFill"
 ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+ProgressFill.BackgroundColor3 = THEME.Accent
 ProgressFill.BorderSizePixel = 0
+ProgressFill.Parent = ProgressContainer
 
 local FillCorner = Instance.new("UICorner")
-FillCorner.CornerRadius = UDim.new(0, 3)
+FillCorner.CornerRadius = UDim.new(0, 20 * scale)
 FillCorner.Parent = ProgressFill
 
--- 进度条流光
-local ProgressStroke = Instance.new("UIStroke")
-ProgressStroke.Thickness = 1
-ProgressStroke.Transparency = 0.3
-ProgressStroke.Color = Color3.fromRGB(0, 200, 255)
-ProgressStroke.Parent = ProgressFill
+-- READY 完成文字
+local readyFontSize = isMobile and 20 or 28
+local CompleteText = Instance.new("TextLabel")
+CompleteText.Name = "CompleteText"
+CompleteText.Size = UDim2.new(1, 0, 0, 40 * scale)
+CompleteText.Position = UDim2.new(0.5, 0, 0.5, -20 * scale)
+CompleteText.AnchorPoint = Vector2.new(0.5, 0.5)
+CompleteText.BackgroundTransparency = 1
+CompleteText.Text = "R E A D Y"
+CompleteText.TextColor3 = THEME.Accent
+CompleteText.Font = Enum.Font.GothamBold
+CompleteText.TextSize = readyFontSize
+CompleteText.TextTransparency = 1
+CompleteText.ZIndex = 45
+CompleteText.Visible = false
+CompleteText.Parent = MainFrame
 
--- ========== 启动按钮 ==========
-local btnW = math.floor(200 * scale)
-local btnH = math.floor(42 * scale)
+-- 角落装饰
+local decoFontSize = isMobile and 8 or 10
+local CornerDeco1 = Instance.new("TextLabel")
+CornerDeco1.Name = "CornerDeco1"
+CornerDeco1.Size = UDim2.new(0, 100, 0, 20 * scale)
+CornerDeco1.Position = UDim2.new(0, 16 * scale, 0, 12 * scale)
+CornerDeco1.BackgroundTransparency = 1
+CornerDeco1.Text = "F SCRIPT HUB"
+CornerDeco1.TextColor3 = Color3.fromRGB(62, 80, 107)
+CornerDeco1.TextTransparency = 1
+CornerDeco1.Font = Enum.Font.GothamMedium
+CornerDeco1.TextSize = decoFontSize
+CornerDeco1.TextXAlignment = Enum.TextXAlignment.Left
+CornerDeco1.ZIndex = 40
+CornerDeco1.Parent = MainFrame
+
+local CornerDeco2 = Instance.new("TextLabel")
+CornerDeco2.Name = "CornerDeco2"
+CornerDeco2.Size = UDim2.new(0, 60, 0, 20 * scale)
+CornerDeco2.Position = UDim2.new(1, -76 * scale, 0, 12 * scale)
+CornerDeco2.BackgroundTransparency = 1
+CornerDeco2.Text = "v6.0"
+CornerDeco2.TextColor3 = Color3.fromRGB(62, 80, 107)
+CornerDeco2.TextTransparency = 1
+CornerDeco2.Font = Enum.Font.GothamMedium
+CornerDeco2.TextSize = decoFontSize
+CornerDeco2.TextXAlignment = Enum.TextXAlignment.Right
+CornerDeco2.ZIndex = 40
+CornerDeco2.Parent = MainFrame
+
+-- ========== 启动按钮（加载完成后显示） ==========
+local btnW = isMobile and 160 or 200
+local btnH = isMobile and 38 or 46
 local StartBtn = Instance.new("TextButton")
-StartBtn.Parent = ContentFrame
+StartBtn.Name = "StartBtn"
 StartBtn.Size = UDim2.new(0, btnW, 0, btnH)
-StartBtn.Position = UDim2.new(0.5, -btnW/2, 0, math.floor(72 * scale))
-StartBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-StartBtn.Text = "启  动  脚  本"
-StartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-StartBtn.TextSize = math.floor(15 * scale)
+StartBtn.Position = UDim2.new(0.5, -btnW/2, 1, -100 * scale)
+StartBtn.BackgroundColor3 = THEME.Accent
+StartBtn.Text = "启 动 脚 本"
+StartBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+StartBtn.TextSize = isMobile and 14 or 16
 StartBtn.Font = Enum.Font.GothamBlack
 StartBtn.BorderSizePixel = 0
 StartBtn.AutoButtonColor = false
+StartBtn.Visible = false
+StartBtn.ZIndex = 50
+StartBtn.Parent = MainFrame
 
 local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 10)
+BtnCorner.CornerRadius = UDim.new(0, 8)
 BtnCorner.Parent = StartBtn
 
--- 按钮流光边框
 local BtnStroke = Instance.new("UIStroke")
 BtnStroke.Thickness = 2
-BtnStroke.Transparency = 0.4
-BtnStroke.Color = Color3.fromRGB(100, 200, 255)
+BtnStroke.Transparency = 0.3
+BtnStroke.Color = THEME.Accent
 BtnStroke.Parent = StartBtn
 
--- ========== 按钮动画 ==========
-local hoverSize = UDim2.new(0, btnW + 12, 0, btnH + 4)
-local normalSize = UDim2.new(0, btnW, 0, btnH)
-local hoverColor = Color3.fromRGB(30, 180, 255)
-local normalColor = Color3.fromRGB(0, 162, 255)
-local pressColor = Color3.fromRGB(0, 130, 220)
+-- ========== 入场动画 ==========
+-- 文字淡入
+TweenService:Create(BrandTitle, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+TweenService:Create(VersionText, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+TweenService:Create(CornerDeco1, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+TweenService:Create(CornerDeco2, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
 
-StartBtn.MouseEnter:Connect(function()
-    TweenService:Create(StartBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = hoverSize, BackgroundColor3 = hoverColor
+-- 脉冲圆点动画
+local function playPulseAnimation()
+    -- Dot1 主圆点闪烁
+    TweenService:Create(Dot1, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
+        BackgroundTransparency = 0
     }):Play()
-    BtnStroke.Transparency = 0.15
+
+    -- Dot2 波纹扩散
+    task.delay(0.15, function()
+        TweenService:Create(Dot2, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            BackgroundTransparency = 0.3
+        }):Play()
+        TweenService:Create(Dot2, TweenInfo.new(1.0, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, dotSize * 2.5, 0, dotSize * 2.5),
+            Position = UDim2.new(0.5, -dotSize * 1.25, 0.5, -dotSize * 1.25),
+            BackgroundTransparency = 1
+        }):Play()
+    end)
+
+    -- Dot3 波纹扩散
+    task.delay(0.3, function()
+        TweenService:Create(Dot3, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            BackgroundTransparency = 0.2
+        }):Play()
+        TweenService:Create(Dot3, TweenInfo.new(1.0, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, dotSize * 3.5, 0, dotSize * 3.5),
+            Position = UDim2.new(0.5, -dotSize * 1.75, 0.5, -dotSize * 1.75),
+            BackgroundTransparency = 1
+        }):Play()
+    end)
+
+    -- 重置波纹
+    task.delay(1.2, function()
+        Dot2.Size = UDim2.new(0, dotSize, 0, dotSize)
+        Dot2.Position = UDim2.new(0.5, -dotHalf, 0.5, -dotHalf)
+        Dot3.Size = UDim2.new(0, dotSize, 0, dotSize)
+        Dot3.Position = UDim2.new(0.5, -dotHalf, 0.5, -dotHalf)
+    end)
+end
+
+-- 循环脉冲
+local pulseConnection
+local pulseRunning = true
+pulseConnection = task.spawn(function()
+    while pulseRunning do
+        playPulseAnimation()
+        task.wait(1.5)
+    end
+end)
+
+-- ========== 模拟加载进度 ==========
+local loadSteps = {
+    {text = "连接服务器...", progress = 0.15, delay = 0.3},
+    {text = "验证版本...", progress = 0.35, delay = 0.4},
+    {text = "下载主脚本...", progress = 0.60, delay = 0.5},
+    {text = "加载模块...", progress = 0.85, delay = 0.4},
+    {text = "初始化完成", progress = 1.0, delay = 0.3},
+}
+
+local currentStep = 1
+local function updateLoadingStep()
+    if currentStep > #loadSteps then return end
+    local step = loadSteps[currentStep]
+
+    LoadingText.Text = step.text
+    TweenService:Create(LoadingText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+
+    local targetW = ProgressContainer.Size.X.Offset * step.progress
+    TweenService:Create(ProgressFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(0, targetW, 1, 0)
+    }):Play()
+
+    currentStep = currentStep + 1
+    if currentStep <= #loadSteps then
+        task.delay(step.delay, updateLoadingStep)
+    end
+end
+
+-- 开始加载动画
+task.delay(0.5, function()
+    TweenService:Create(LoadingText, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(ProgressContainer, TweenInfo.new(0.4), {BackgroundTransparency = 0.92}):Play()
+    updateLoadingStep()
+end)
+
+-- ========== 加载完成，显示启动按钮 ==========
+local function showStartButton()
+    pulseRunning = false
+
+    -- 隐藏加载元素
+    TweenService:Create(LoadingText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    TweenService:Create(ProgressContainer, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(ProgressFill, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+
+    -- 显示 READY
+    CompleteText.Visible = true
+    TweenService:Create(CompleteText, TweenInfo.new(0.4, Enum.EasingStyle.Back), {TextTransparency = 0}):Play()
+
+    task.delay(0.8, function()
+        -- 隐藏 READY，显示按钮
+        TweenService:Create(CompleteText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+
+        StartBtn.Visible = true
+        StartBtn.TextTransparency = 1
+        TweenService:Create(StartBtn, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+            TextTransparency = 0
+        }):Play()
+    end)
+end
+
+-- 2.5秒后显示启动按钮
+task.delay(2.5, showStartButton)
+
+-- ========== 按钮动画 ==========
+StartBtn.MouseEnter:Connect(function()
+    TweenService:Create(StartBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, btnW + 10, 0, btnH + 4),
+        BackgroundColor3 = Color3.fromRGB(140, 230, 255)
+    }):Play()
+    BtnStroke.Transparency = 0.1
 end)
 
 StartBtn.MouseLeave:Connect(function()
-    TweenService:Create(StartBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = normalSize, BackgroundColor3 = normalColor
+    TweenService:Create(StartBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, btnW, 0, btnH),
+        BackgroundColor3 = THEME.Accent
     }):Play()
-    BtnStroke.Transparency = 0.4
+    BtnStroke.Transparency = 0.3
 end)
 
 StartBtn.MouseButton1Down:Connect(function()
     TweenService:Create(StartBtn, TweenInfo.new(0.1), {
-        Size = UDim2.new(0, btnW - 6, 0, btnH - 3), BackgroundColor3 = pressColor
+        Size = UDim2.new(0, btnW - 6, 0, btnH - 3),
+        BackgroundColor3 = Color3.fromRGB(90, 200, 240)
     }):Play()
 end)
 
 StartBtn.MouseButton1Up:Connect(function()
     TweenService:Create(StartBtn, TweenInfo.new(0.15), {
-        Size = hoverSize, BackgroundColor3 = hoverColor
+        Size = UDim2.new(0, btnW + 10, 0, btnH + 4),
+        BackgroundColor3 = Color3.fromRGB(140, 230, 255)
     }):Play()
 end)
-
--- ========== 入场动画 ==========
-MainFrame.Size = UDim2.new(0, 0, 0, 0)
-MainFrame.BackgroundTransparency = 1
-TitleBar.BackgroundTransparency = 1
-ContentFrame.BackgroundTransparency = 1
-StartBtn.TextTransparency = 1
-WelcomeText.TextTransparency = 1
-StatusText.TextTransparency = 1
-
-TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, fw, 0, fh),
-    BackgroundTransparency = 0.2
-}):Play()
-
-task.delay(0.15, function()
-    TweenService:Create(TitleBar, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-        BackgroundTransparency = 0.3
-    }):Play()
-    TweenService:Create(ContentFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-        BackgroundTransparency = 0.4
-    }):Play()
-end)
-
-task.delay(0.3, function()
-    TweenService:Create(WelcomeText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-    TweenService:Create(StatusText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-    TweenService:Create(StartBtn, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-end)
-
--- ========== 模拟进度条动画 ==========
-local progressAnim = coroutine.wrap(function()
-    while ProgressFill and ProgressFill.Parent do
-        local current = ProgressFill.Size.X.Offset
-        if current < (ProgressBg.Size.X.Offset - 4) then
-            TweenService:Create(ProgressFill, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {
-                Size = UDim2.new(0, current + math.random(5, 15), 1, 0)
-            }):Play()
-        end
-        task.wait(math.random(0.3, 0.8))
-    end
-end)
-progressAnim()
 
 -- ========== 点击启动 ==========
-local isLoading = false
-
 StartBtn.MouseButton1Click:Connect(function()
-    if isLoading then return end
-    isLoading = true
-
-    -- 更新状态
-    StartBtn.Text = "加 载 中 . . ."
+    StartBtn.Text = "执 行 中 . . ."
     StartBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
     BtnStroke.Color = Color3.fromRGB(150, 150, 150)
-    StatusText.Text = "正在连接服务器..."
-    StatusText.TextColor3 = Color3.fromRGB(255, 220, 0)
 
-    -- 进度条快速填满动画
-    local targetW = ProgressBg.Size.X.Offset - 4
-    TweenService:Create(ProgressFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
-        Size = UDim2.new(0, targetW * 0.5, 1, 0)
-    }):Play()
-
-    task.delay(0.3, function()
-        StatusText.Text = "正在下载主脚本..."
-        TweenService:Create(ProgressFill, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, targetW * 0.8, 1, 0)
-        }):Play()
-    end)
-
-    task.delay(0.6, function()
-        StatusText.Text = "正在初始化模块..."
-        TweenService:Create(ProgressFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, targetW, 1, 0)
-        }):Play()
-    end)
-
-    -- 实际加载
-    task.delay(0.8, function()
-        local success, err = pcall(function()
-            local code = game:HttpGet(MAIN_URL)
-            if code and #code > 100 then
-                StatusText.Text = "正在执行脚本..."
-                ProgressFill.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
-                ProgressStroke.Color = Color3.fromRGB(0, 255, 150)
-                loadstring(code)()
-            else
-                error("获取脚本失败，返回内容过短")
-            end
-        end)
-
-        if not success then
-            -- 加载失败
-            StartBtn.Text = "启  动  失  败"
-            StartBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-            BtnStroke.Color = Color3.fromRGB(255, 100, 100)
-            StatusText.Text = "加载失败，请重试"
-            StatusText.TextColor3 = Color3.fromRGB(255, 80, 80)
-            ProgressFill.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-            ProgressStroke.Color = Color3.fromRGB(255, 80, 80)
-            TweenService:Create(ProgressFill, TweenInfo.new(0.3), {
-                Size = UDim2.new(0, 0, 1, 0)
-            }):Play()
-
-            pcall(function()
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "启动失败",
-                    Text = tostring(err):sub(1, 50) or "请检查网络连接",
-                    Duration = 5
-                })
-            end)
-
-            -- 3秒后恢复按钮
-            task.delay(3, function()
-                isLoading = false
-                StartBtn.Text = "启  动  脚  本"
-                StartBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-                BtnStroke.Color = Color3.fromRGB(100, 200, 255)
-                StatusText.Text = "点击下方按钮启动脚本"
-                StatusText.TextColor3 = Color3.fromRGB(150, 150, 255)
-                ProgressFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-                ProgressStroke.Color = Color3.fromRGB(0, 200, 255)
-                progressAnim()
-            end)
+    local success, err = pcall(function()
+        local code = game:HttpGet(MAIN_URL)
+        if code and #code > 100 then
+            loadstring(code)()
         else
-            -- 加载成功 - 淡出关闭
-            StatusText.Text = "加载成功！"
-            StatusText.TextColor3 = Color3.fromRGB(0, 255, 150)
-
-            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, fw * 0.8, 0, fh * 0.8)
-            }):Play()
-
-            TweenService:Create(TitleBar, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-            TweenService:Create(ContentFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-            TweenService:Create(StartBtn, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-            TweenService:Create(WelcomeText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-            TweenService:Create(StatusText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-
-            task.delay(0.5, function()
-                ScreenGui:Destroy()
-            end)
+            error("获取脚本失败，返回内容过短")
         end
     end)
+
+    if not success then
+        StartBtn.Text = "启 动 失 败"
+        StartBtn.BackgroundColor3 = THEME.Error
+        BtnStroke.Color = THEME.Error
+
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "启动失败",
+                Text = tostring(err):sub(1, 50) or "请检查网络连接",
+                Duration = 5
+            })
+        end)
+
+        task.delay(3, function()
+            StartBtn.Text = "启 动 脚 本"
+            StartBtn.BackgroundColor3 = THEME.Accent
+            BtnStroke.Color = THEME.Accent
+        end)
+    else
+        -- 成功 - 淡出关闭
+        TweenService:Create(blurEffect, TweenInfo.new(0.4), {Size = 0}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
+            BackgroundTransparency = 1
+        }):Play()
+        TweenService:Create(StartBtn, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(BrandTitle, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(VersionText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+
+        task.delay(0.5, function()
+            ScreenGui:Destroy()
+            if blurEffect and blurEffect.Parent then
+                blurEffect:Destroy()
+            end
+        end)
+    end
 end)
 
 -- ========== 通知 ==========
 pcall(function()
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "F脚本中心",
-        Text = "v6.0 模块化版 - 点击启动按钮开始",
+        Text = "v6.0 ChronixHub风格启动器已加载",
         Duration = 3
     })
 end)
