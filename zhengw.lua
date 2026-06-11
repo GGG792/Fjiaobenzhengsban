@@ -2170,12 +2170,12 @@ infoTab:AddButton({Text="强制内存垃圾回收",Callback=function()
 	ChronixUI:Notify({Title="提示",Content="已进行垃圾回收\n请不要频繁使用，可能会影响性能。",Type="info",Duration=5});
 end});
 infoTab:AddTitle(">广告位招租<");
-infoTab:AddParagraph({Title="YangZhiKa FeiJiHao",Content="Colorful Gradient Text Advertisement\n\nYangZhiKa FeiJiHao\n\nQQ: 2490035277\n\nContact to purchase advertising space!"});
-infoTab:AddButton({Text="Copy QQ Number",Callback=function()
+infoTab:AddParagraph({Title="YangZhiKa 飞机号",Content="广告位招租\n\nYangZhiKa 飞机号\n要买加 QQ：2490035277\n\nContact to purchase advertising space!"});
+infoTab:AddButton({Text="复制QQ号: 2490035277",Callback=function()
 	pcall(function()
 		setclipboard("2490035277");
 	end);
-	ChronixUI:Notify({Title="Copied!",Content="QQ number copied to clipboard",Type="success",Duration=2});
+	ChronixUI:Notify({Title="已复制",Content="QQ号已复制到剪贴板",Type="success",Duration=2});
 end});
 local settingsContent = mainWindow.SettingsElements;
 if (getfpscap and setfpscap) then
