@@ -2608,7 +2608,7 @@ function unloadChronixHub()
 	end
 	clearAllConnections();
 	pcall(function()
-		SystemNotification.UnloadedGradient("ChronixHub V3 Already Unload!");
+		SystemNotification.UnloadedGradient("F脚本中心 Already Unload!");
 	end);
 	LogService:Info("[ChronixHub] 已成功卸载。");
 	for moduleName, _ in pairs(modulesToFetch) do
@@ -2621,7 +2621,7 @@ local loadTime = string.format("%.2f", tick() - startTime);
 ChronixUI:Notify({Title="提示",Content=("ChronixHub 启动成功。用时: " .. loadTime .. "s\n防挂机已自动开启。"),Type="info",Duration=10});
 LogService:Info("[ChronixHub] 已成功加载。用时: " .. loadTime .. "s");
 pcall(function()
-	SystemNotification.Rainbow("ChronixHub V3 Already Success Loaded!\nWelcome " .. data['basicdata']['player']['displayname']);
+	SystemNotification.Rainbow("F脚本中心 Already Success Loaded!\nWelcome " .. data['basicdata']['player']['displayname']);
 end);
 _G.ChronixHubisLoaded = true;
 _G.ChronixHubLoading = false;

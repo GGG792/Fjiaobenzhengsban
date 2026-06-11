@@ -14,6 +14,10 @@ pcall(function()
 	if LocalPlayer.PlayerGui:FindFirstChild("FScriptLoader") then
 		LocalPlayer.PlayerGui.FScriptLoader:Destroy();
 	end
+	if LocalPlayer.PlayerGui:FindFirstChild("FScriptHub") then
+		game:GetService("StarterGui"):SetCore("SendNotification", {Title="提示",Text="启动界面已存在，请勿重复点击",Duration=3});
+		return;
+	end
 end);
 local ScreenGui = Instance.new("ScreenGui");
 ScreenGui.Name = "FScriptLoader";
