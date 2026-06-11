@@ -131,12 +131,51 @@ local SubTitleText = new("TextLabel", TitleBar, {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
+-- 缩小按钮（最小化到F图标）
+local MinimizeBtn = new("TextButton", TitleBar, {
+    Size = UDim2.new(0, 32, 0, 32),
+    Position = UDim2.new(1, -78, 0, 11),
+    BackgroundColor3 = Color3.fromRGB(255, 180, 0),
+    Text = "−",
+    TextColor3 = Color3.fromRGB(255,255,255),
+    Font = Enum.Font.GothamBold,
+    TextSize = 20,
+    BorderSizePixel = 0
+})
+corner(MinimizeBtn, 8)
+
+-- 横版/竖版切换按钮
+local LayoutBtn = new("TextButton", TitleBar, {
+    Size = UDim2.new(0, 32, 0, 32),
+    Position = UDim2.new(1, -116, 0, 11),
+    BackgroundColor3 = Color3.fromRGB(0, 162, 255),
+    Text = "⟲",
+    TextColor3 = Color3.fromRGB(255,255,255),
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+    BorderSizePixel = 0
+})
+corner(LayoutBtn, 8)
+
+-- 删除脚本按钮（清理其他脚本UI）
+local ClearScriptsBtn = new("TextButton", TitleBar, {
+    Size = UDim2.new(0, 32, 0, 32),
+    Position = UDim2.new(1, -154, 0, 11),
+    BackgroundColor3 = Color3.fromRGB(255, 50, 80),
+    Text = "🗑",
+    TextColor3 = Color3.fromRGB(255,255,255),
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    BorderSizePixel = 0
+})
+corner(ClearScriptsBtn, 8)
+
 -- 关闭按钮
 local CloseBtn = new("TextButton", TitleBar, {
     Size = UDim2.new(0, 32, 0, 32),
     Position = UDim2.new(1, -40, 0, 11),
     BackgroundColor3 = Color3.fromRGB(255,100,50),
-    Text = "-",
+    Text = "×",
     TextColor3 = Color3.fromRGB(255,255,255),
     Font = Enum.Font.GothamBold,
     TextSize = 20,
@@ -474,6 +513,152 @@ openBtn.MouseButton1Click:Connect(function()
 end)
 
 CloseBtn.MouseButton1Click:Connect(collapseUI)
+
+-- 缩小按钮功能（最小化到F图标）
+MinimizeBtn.MouseButton1Click:Connect(function()
+    collapseUI()
+end)
+
+-- 横版/竖版切换功能
+local isHorizontal = false
+local originalLeftPanelSize = UDim2.new(0, 170, 1, -65)
+local originalLeftPanelPos = UDim2.new(0, 8, 0, 60)
+local originalRightPanelSize = UDim2.new(1, -190, 1, -65)
+local originalRightPanelPos = UDim2.new(0, 182, 0, 60)
+local originalMainFrameSize = UDim2.new(0, frameWidth, 0, frameHeight)
+
+LayoutBtn.MouseButton1Click:Connect(function()
+    if animating then return end
+    animating = true
+    isHorizontal = not isHorizontal
+
+    if isHorizontal then
+        -- 切换到横版：左侧按钮移到上方，内容区在下方
+        tween(LeftPanel, 0.4, {
+            Size = UDim2.new(1, -16, 0, 120),
+            Position = UDim2.new(0, 8, 0, 60)
+        })
+        tween(RightPanel, 0.4, {
+            Size = UDim2.new(1, -16, 1, -190),
+            Position = UDim2.new(0, 8, 0, 185)
+        })
+        -- 调整主界面为横版比例
+        tween(MainFrame, 0.4, {
+            Size = UDim2.new(0, math.min(frameWidth * 1.3, screenSize.X * 0.9), 0, frameHeight)
+        })
+        LayoutBtn.Text = "⟳"
+    else
+        -- 切换回竖版
+        tween(LeftPanel, 0.4, {
+            Size = originalLeftPanelSize,
+            Position = originalLeftPanelPos
+        })
+        tween(RightPanel, 0.4, {
+            Size = originalRightPanelSize,
+            Position = originalRightPanelPos
+        })
+        tween(MainFrame, 0.4, {
+            Size = originalMainFrameSize
+        })
+        LayoutBtn.Text = "⟲"
+    end
+
+    task.delay(0.4, function()
+        animating = false
+    end)
+end)
+
+-- 删除脚本按钮功能（清理其他脚本创建的UI）
+ClearScriptsBtn.MouseButton1Click:Connect(function()
+    local clearedCount = 0
+
+    -- 清理PlayerGui中其他脚本的ScreenGui
+    pcall(function()
+        for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
+                -- 检查是否是常见脚本UI名称
+                local scriptNames = {"VicoImmersiveUI", "Aero", "WindUI", "SynapseX", "Krnl", "Fluxus", "ScriptWare", "OxygenU", "Comet", "Electron", "ScriptUI", "ScriptHub", "GameUI", "ModMenu", "CheatMenu", "HackUI", "ExploitUI", "InjectUI"}
+                local isScriptUI = false
+                for _, name in ipairs(scriptNames) do
+                    if gui.Name:find(name) or name:find(gui.Name) then
+                        isScriptUI = true
+                        break
+                    end
+                end
+                -- 也检查是否包含大量交互元素（可能是脚本UI）
+                if not isScriptUI then
+                    local interactableCount = 0
+                    for _, child in ipairs(gui:GetDescendants()) do
+                        if child:IsA("TextButton") or child:IsA("ImageButton") or child:IsA("Toggle") then
+                            interactableCount = interactableCount + 1
+                        end
+                    end
+                    if interactableCount > 3 then
+                        isScriptUI = true
+                    end
+                end
+                if isScriptUI then
+                    gui:Destroy()
+                    clearedCount = clearedCount + 1
+                end
+            end
+        end
+    end)
+
+    -- 清理CoreGui中其他脚本的UI
+    pcall(function()
+        for _, gui in ipairs(CoreGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui.Name ~= "FScriptHub" then
+                local scriptNames = {"VicoImmersiveUI", "Aero", "WindUI", "SynapseX", "Krnl", "Fluxus", "ScriptWare", "OxygenU", "Comet", "Electron", "ScriptUI", "ScriptHub", "GameUI", "ModMenu", "CheatMenu", "HackUI", "ExploitUI", "InjectUI"}
+                local isScriptUI = false
+                for _, name in ipairs(scriptNames) do
+                    if gui.Name:find(name) or name:find(gui.Name) then
+                        isScriptUI = true
+                        break
+                    end
+                end
+                if not isScriptUI then
+                    local interactableCount = 0
+                    for _, child in ipairs(gui:GetDescendants()) do
+                        if child:IsA("TextButton") or child:IsA("ImageButton") then
+                            interactableCount = interactableCount + 1
+                        end
+                    end
+                    if interactableCount > 3 then
+                        isScriptUI = true
+                    end
+                end
+                if isScriptUI then
+                    gui:Destroy()
+                    clearedCount = clearedCount + 1
+                end
+            end
+        end
+    end)
+
+    -- 清理常见的脚本实例（如BodyVelocity、BodyGyro等飞行相关）
+    pcall(function()
+        if LocalPlayer.Character then
+            for _, obj in ipairs(LocalPlayer.Character:GetDescendants()) do
+                if obj:IsA("BodyVelocity") or obj:IsA("BodyGyro") or obj:IsA("BodyAngularVelocity") or obj:IsA("Highlight") then
+                    if obj.Name == "SpinVelocity" or obj.Name == "RainbowStroke" or obj.Name == "GlowEffect" then
+                        obj:Destroy()
+                        clearedCount = clearedCount + 1
+                    end
+                end
+            end
+        end
+    end)
+
+    -- 通知
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "清理完成",
+            Text = "已清理 " .. clearedCount .. " 个脚本UI",
+            Duration = 3
+        })
+    end)
+end)
 
 -- 初始显示展开动画
 MainFrame.Visible = true
